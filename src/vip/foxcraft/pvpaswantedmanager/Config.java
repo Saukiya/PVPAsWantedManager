@@ -46,7 +46,10 @@ public class Config {
 		config.set("jail.eventManager.portal.enabled",Boolean.valueOf(true));
 		config.set("jail.eventManager.underAttack.enabled",Boolean.valueOf(true));
 		ArrayList<String> listCmd = new ArrayList<String>();
-		listCmd.add("Testcmd");
+		listCmd.add("pawm");
+		listCmd.add("bal");
+		listCmd.add("list");
+		listCmd.add("tell");
 		config.set("jail.eventManager.command.whiteList", listCmd);
 		config.set("jail.location.X", Integer.valueOf(0));
 		config.set("jail.location.Y", Integer.valueOf(80));

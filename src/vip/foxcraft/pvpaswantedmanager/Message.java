@@ -70,8 +70,8 @@ public class Message {
 		asWantedLore.add("&3目标: &7{0}");
 		asWantedLore.add("&3左键 &c清空");
 		messages.set("setPlayerGui.asWanted.Lore", asWantedLore);
-		messages.set("player.newWantedMessage", String.valueOf("&8[&c死亡&8] &7你击杀了 &6{0}! PK值达到 &c{1}&7!"));
-		messages.set("player.deathMessage", String.valueOf("&8[&c死亡&8] &7你因为PK值导致额外扣取 &4{0}&c 经验等级"));
+		messages.set("player.newWantedMessage", String.valueOf("&8[&4击杀&8] &7你击杀了 &6{0}&7! PK值达到 &e{1}&7!"));
+		messages.set("player.deathMessage", String.valueOf("&8[&4死亡&8] &7你因为PK值导致额外扣取 &c{0}&7 经验等级"));
 		messages.set("player.expMessage", String.valueOf("&8[&6经验&8] &7你因为PK值获得额外 &e{0}&7 经验"));
 		messages.set("player.noTargetMeMessage", String.valueOf("&8[&c通缉&8] &7你不能通缉你自己!"));
 		messages.set("player.nullTargetMessage", String.valueOf("&8[&c通缉&8] &7你的通缉任务失败!连续通缉次数归零! &7（&c原因&7:目标PK值已消除 或被他人抓获）"));

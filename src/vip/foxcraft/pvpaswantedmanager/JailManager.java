@@ -18,6 +18,40 @@ import org.bukkit.event.player.*;
 
 public class JailManager implements Listener {
 	static File DataFile;
+	static public void teleport(Player player,Location location){
+		Double X = location.getX();
+		Double Y = location.getY();
+		Double Z = location.getZ();
+		World World = location.getWorld();
+		
+        for(int i=0;i <= (256-Y);){
+        	location = new Location(World,X,Y+i,Z);
+        if(location.getBlock().isEmpty()){
+        	location = new Location(World,X,Y+i+1,Z);
+        	if(location.getBlock().isEmpty()){
+        		if(i==0){
+        			for(int l=1;l <= Y;){
+        				location =  new Location(World,X,Y-l,Z);
+        				if(location.getBlock().isEmpty()){
+        					l++;
+        				}else{
+        					Y = Y -l+1;
+        					break;
+        				}
+        			}
+        		}
+        		Y = Y+i+0.1;
+        		location = new Location(World,X,Y,Z);
+        		i=500;
+        	}else{
+        		i=i+2;
+        	}
+        }else{
+        	i++;
+        }
+        }
+        teleport(player,location);
+	}
 	static public void playerJoinJail(Player player){
 		DataFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "PlayerData" + File.separator + player.getName() +".yml");
         YamlConfiguration PlayerData = PVPAsWantedManager.onLoadData(player.getName());
@@ -30,13 +64,13 @@ public class JailManager implements Listener {
         PlayerData.set("attribute.originalZ", playerZ);
         PlayerData.set("attribute.originalWorld", playerWorld);
         PVPAsWantedManager.onSaveData(player.getName(), PlayerData);
-        int jailX = Integer.valueOf(Config.getConfig("jail.location.X"));
-        int jailY = Integer.valueOf(Config.getConfig("jail.location.Y"));
-        int jailZ = Integer.valueOf(Config.getConfig("jail.location.Z"));
+        double jailX = Integer.valueOf(Config.getConfig("jail.location.X"))+0.5;
+        double jailY = Integer.valueOf(Config.getConfig("jail.location.Y"));
+        double jailZ = Integer.valueOf(Config.getConfig("jail.location.Z"))+0.5;
         World jailWorld = Bukkit.getWorld(Config.getConfig("jail.location.World"));
         Location jail = new Location(jailWorld,jailX,jailY,jailZ);
         player.setFlying(false);
-        player.teleport(jail);
+        teleport(player,jail);
 	}
 	
 	static public void playerTeleportJail(Player player){
@@ -45,45 +79,19 @@ public class JailManager implements Listener {
         double jailZ = Integer.valueOf(Config.getConfig("jail.location.Z"))+0.5;
         World jailWorld = Bukkit.getWorld(Config.getConfig("jail.location.World"));
         Location jail = new Location(jailWorld,jailX,jailY,jailZ);
-        for(int i=0;i <= (256-jailY);){
-        	jail = new Location(jailWorld,jailX,jailY+i,jailZ);
-        if(jail.getBlock().isEmpty()){
-        	jail = new Location(jailWorld,jailX,jailY+i+1,jailZ);
-        	if(jail.getBlock().isEmpty()){
-        		if(i==0){
-        			for(int l=1;l <= jailY;){
-        				jail =  new Location(jailWorld,jailX,jailY-l,jailZ);
-        				if(jail.getBlock().isEmpty()){
-        					l++;
-        				}else{
-        					jailY = jailY -l+1;
-        					break;
-        				}
-        			}
-        		}
-        		jailY = jailY+i+0.1;
-        		jail = new Location(jailWorld,jailX,jailY,jailZ);
-        		i=500;
-        	}else{
-        		i=i+2;
-        	}
-        }else{
-        	i++;
-        }
-        }
-        player.teleport(jail);
+        teleport(player,jail);
         player.sendMessage(Message.getMsg("player.jailedeventMessage"));
 	}
 	
 	static public void playerQuitJail(Player player){
 		DataFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "PlayerData" + File.separator + player.getName() +".yml");
         YamlConfiguration PlayerData = PVPAsWantedManager.onLoadData(player.getName());
-        int playerX = PlayerData.getInt("attribute.originalX");
-        int playerY = PlayerData.getInt("attribute.originalY");
-        int playerZ = PlayerData.getInt("attribute.originalZ");
+        double playerX = PlayerData.getInt("attribute.originalX");
+        double playerY = PlayerData.getInt("attribute.originalY");
+        double playerZ = PlayerData.getInt("attribute.originalZ");
         World playerWorld = Bukkit.getWorld(PlayerData.getString("attribute.originalWorld"));
         Location playerLocatioin = new Location(playerWorld,playerX,playerY,playerZ);
-        player.teleport(playerLocatioin);
+        teleport(player,playerLocatioin);
         PlayerData.set("attribute.originalX", Integer.valueOf(0));
         PlayerData.set("attribute.originalY", Integer.valueOf(0));
         PlayerData.set("attribute.originalZ", Integer.valueOf(0));

@@ -104,10 +104,9 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 		}
 	}
 	public void setPlayerLevel(Player player , int playerWantedPoints){
-		int level = player.getLevel() - playerWantedPoints - 1;
-
+		int level = player.getLevel() - playerWantedPoints;
 		player.setLevel(level);
-		player.sendMessage("你因为死亡而被惩罚" + Integer.valueOf(level) + "经验等级");
+		player.sendMessage(Message.getMsg("player.deathMessage",String.valueOf(level)));
 	}
 
 
@@ -477,8 +476,8 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 					KillerData.set("asWanted.cumulativenumber", Integer.valueOf(killerAsWantedCumulativeNumber + 1));
 					KillerData.set("asWanted.continuitynumber", Integer.valueOf(killerAsWantedContinuityNumber + 1));
 					//TODO 通缉奖励 killer
-					double value = 0;
-					int taskRewardMoney = Integer.valueOf(Config.getConfig("TaskReward.money"));
+					double value = 0.0D;
+					Double taskRewardMoney = Double.valueOf(Config.getConfig("TaskReward.money"));
 					if(killerWantedPoints >= playerWantedPoints){
 						value= playerWantedPoints/4*taskRewardMoney;
 					}else{
@@ -486,7 +485,12 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 					}
 					int money = (int)value*-1;
 					EditMoney(killer.getName(),money);
-					killer.sendMessage(Message.getMsg("player.asWantedArrestMessage",player.getName()));
+
+					Double taskRewardExp = Double.valueOf(Config.getConfig("TaskReward.exp"));
+					value = (player.getLevel()/killer.getLevel()+1)*taskRewardExp;
+					int exp = (int)value;
+					killer.setLevel(exp+killer.getLevel());
+					killer.sendMessage(Message.getMsg("player.asWantedArrestMessage",player.getName(),String.valueOf(money*-1),String.valueOf(exp)));
 					
 					
 				}else{
@@ -499,12 +503,12 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 					if(killerWantedPoints + 1 >= killerHighestPoints){
 						KillerData.set("wanted.highestPoints", Integer.valueOf(killerHighestPoints + 1));
 					}
-					setPlayerLevel(player, playerWantedPoints);
+					if(playerWantedPoints>0)setPlayerLevel(player, playerWantedPoints);
 				}
 				onSaveData(player.getName(), PlayerData);
 				onSaveData(killer.getName(), KillerData);
 			}else{
-				setPlayerLevel(player, playerWantedPoints);
+				if(playerWantedPoints>0)setPlayerLevel(player, playerWantedPoints);
 			}
 			}
 		}
