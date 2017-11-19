@@ -32,7 +32,7 @@ import net.ess3.api.Economy;
 public class InventoryManager implements Listener {	
 	@SuppressWarnings("deprecation")
 	@EventHandler
-	public void onCheckAsWantedInventory(InventoryClickEvent event) throws UserDoesNotExistException, NoLoanPermittedException{
+	public void onCheckAsWantedInventory(InventoryClickEvent event){
 		Inventory inventory = event.getInventory();
 		String inventoryName = inventory.getName();
 		ItemStack item = event.getCurrentItem();
@@ -84,17 +84,15 @@ public class InventoryManager implements Listener {
 						if(!target.equals("N/A")){
 							YamlConfiguration targetData = PVPAsWantedManager.onLoadData(target);
 							int targetWantedPoints = targetData.getInt("wanted.points");
-							int cancelltargetbalance = Integer.valueOf(Config.getConfig("CancellAsWantedTarget.balance"));
-							int money = (int)Economy.getMoney(player.getName());
-							if(money >=(cancelltargetbalance*targetWantedPoints)){
-								money = money-(cancelltargetbalance*targetWantedPoints);
-								Economy.setMoney(player.getName(), money);
+							int cancelltargetbalance = Integer.valueOf(Config.getConfig("CancellAsWantedTarget.money"));
+							int value = targetWantedPoints*cancelltargetbalance;
+							if(PVPAsWantedManager.EditMoney(player.getName(), value)){
 								Data.set("asWanted.target", String.valueOf("N/A"));
-								player.sendMessage(Message.getMsg("player.cancellTargetMessage",String.valueOf(cancelltargetbalance*targetWantedPoints),String.valueOf(money)));
+								PVPAsWantedManager.onSaveData(player.getName(), Data);
+								player.sendMessage(Message.getMsg("player.cancellTargetMessage",String.valueOf(value),String.valueOf(PVPAsWantedManager.GetMoney(player.getName()))));
 							}else{
 								player.sendMessage(Message.getMsg("player.nobalanceMessage"));
 							}
-							PVPAsWantedManager.onSaveData(player.getName(), Data);
 						player.closeInventory();
 						}
 					}
@@ -270,7 +268,7 @@ public class InventoryManager implements Listener {
 		String jailCumulativeNumber = PlayerData.getString("jail.cumulativeNumber");
 		int jailTimes = Integer.valueOf(PlayerData.getString("jail.times"));
 		int jailCalculationTime = Integer.valueOf(Config.getConfig("timeTick.jailPlayerTimeDeduction").replace("min", ""));
-		int cancelltargetbalance = Integer.valueOf(Config.getConfig("CancellAsWantedTarget.balance"));
+		int cancelltargetbalance = Integer.valueOf(Config.getConfig("CancellAsWantedTarget.money"));
 		String asWantedTarget = PlayerData.getString("asWanted.target");
 		String asWantedCumulativeNumber = PlayerData.getString("asWanted.cumulativenumber");
 		String asWantedContinuityNumber = PlayerData.getString("asWanted.continuitynumber");

@@ -25,6 +25,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import com.earth2me.essentials.api.Economy;
+import com.earth2me.essentials.api.NoLoanPermittedException;
 import com.earth2me.essentials.api.UserDoesNotExistException;
 
 import vip.foxcraft.pvpaswantedmanager.PlayerCommand;
@@ -55,7 +56,24 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 		try {PlayerData.save(DataFile);} catch (IOException e) {e.printStackTrace();}
 	}
 	
-	
+	@SuppressWarnings("deprecation")
+	static public Boolean EditMoney(String name,int value){
+		Double money = 0.0D;
+		try {money = Economy.getMoney(name);} catch (UserDoesNotExistException e) {e.printStackTrace();}
+		if(money >= value){
+			money = money - value;
+			try {Economy.setMoney(name, money);} catch (NoLoanPermittedException e) {e.printStackTrace();} catch (UserDoesNotExistException e) {e.printStackTrace();}
+			return true;
+		}else{
+			return false;
+		}
+	}
+	@SuppressWarnings("deprecation")
+	static public int GetMoney(String name){
+		int money = 0;
+		try {money = (int) Economy.getMoney(name);} catch (UserDoesNotExistException e) {e.printStackTrace();}
+		return money;
+	}
 	
 	static public Boolean isPlayerOnline(String player){
 		return Bukkit.getOfflinePlayer(player).isOnline();
@@ -452,7 +470,6 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 					if(killerWantedPoints >= playerWantedPoints){
 						KillerData.set("wanted.points", Integer.valueOf(killerWantedPoints - playerWantedPoints));
 					}else{
-						int AsWantedPoints = playerWantedPoints - killerWantedPoints;
 						KillerData.set("wanted.points", Integer.valueOf(0));
 						onDeleteList(killer.getName(),"WantedList");
 					}
@@ -460,6 +477,15 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 					KillerData.set("asWanted.cumulativenumber", Integer.valueOf(killerAsWantedCumulativeNumber + 1));
 					KillerData.set("asWanted.continuitynumber", Integer.valueOf(killerAsWantedContinuityNumber + 1));
 					//TODO 通缉奖励 killer
+					double value = 0;
+					int taskRewardMoney = Integer.valueOf(Config.getConfig("TaskReward.money"));
+					if(killerWantedPoints >= playerWantedPoints){
+						value= playerWantedPoints/4*taskRewardMoney;
+					}else{
+						value= ((playerWantedPoints-killerWantedPoints)+playerWantedPoints/4)*taskRewardMoney;
+					}
+					int money = (int)value;
+					EditMoney(killer.getName(),money);
 					killer.sendMessage(Message.getMsg("player.asWantedArrestMessage",player.getName()));
 					
 					

@@ -18,8 +18,8 @@ public class Config {
 		config.set("language", String.valueOf("CN"));
 		//TODO false TaskRewardGoldCoin
 		config.set("CancellAsWantedTarget.enabled", Boolean.valueOf(true));
-		config.set("CancellAsWantedTarget.balance", Integer.valueOf(100));
-		config.set("TaskReward.balance", Integer.valueOf(500));
+		config.set("CancellAsWantedTarget.money", Integer.valueOf(100));
+		config.set("TaskReward.money", Integer.valueOf(500));
 		config.set("TaskReward.exp", Integer.valueOf(1));
 		config.set("asWantedGui.ID.glass", String.valueOf("160:15"));
 		config.set("asWantedGui.ID.pageDown", Integer.valueOf("262"));
