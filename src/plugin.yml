@@ -1,0 +1,39 @@
+name: PVPAsWantedManager
+main: vip.foxcraft.pvpaswantedmanager.PVPAsWantedManager
+version: 1.0.0
+author: Saukiya
+softdepend: [PlaceholderAPI]
+commands:
+    PVPAsWantedManager:
+       description: This is a permission command.
+       usage: /<command> look help.
+       aliases: [pawm]
+permissions:
+  pvpaswantedmanager.use:
+    description: PAWM USE
+    default: true
+    children:
+      pvpaswantedmanager.open: true
+  pvpaswantedmanager.open:
+    description: PAWM OPEN
+    default: true
+  pvpaswantedmanager.admin:
+    description: PAWM ADMIN
+    default: op
+    children:
+      pvpaswantedmanager.set: true
+      pvpaswantedmanager.setjail: true
+      pvpaswantedmanager.joinjail: true
+      pvpaswantedmanager.reload: true
+  pvpaswantedmanager.set:
+    description: PAWM SET
+    default: op
+  pvpaswantedmanager.setjail:
+    description: PAWM SETJAIL
+    default: op
+  pvpaswantedmanager.joinjail:
+    description: PAWM JOINJAIL
+    default: op
+  pvpaswantedmanager.reload:
+    description: PAWM RELOAD
+    default: op
