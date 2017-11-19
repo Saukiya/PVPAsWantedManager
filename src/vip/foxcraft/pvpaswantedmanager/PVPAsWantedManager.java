@@ -484,7 +484,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 					}else{
 						value= ((playerWantedPoints-killerWantedPoints)+playerWantedPoints/4)*taskRewardMoney;
 					}
-					int money = (int)value;
+					int money = (int)value*-1;
 					EditMoney(killer.getName(),money);
 					killer.sendMessage(Message.getMsg("player.asWantedArrestMessage",player.getName()));
 					
