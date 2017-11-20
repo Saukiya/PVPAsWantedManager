@@ -43,7 +43,7 @@ public class Message {
 		messages.set("asWantedGui.info.Lore", infoLore);
 		messages.set("asWantedGui.jailInfo.Name", String.valueOf("监狱时间"));
 		ArrayList<String> jailInfoLore = new ArrayList<String>();
-		jailInfoLore.add("&6剩余时间: &c{0}分");
+		jailInfoLore.add("&6剩余时间: &c{0}分钟");
 		jailInfoLore.add("&6预计时间: &6{1}&7PK值*&6{2}&7分钟= &c{3}&7分钟");
 		messages.set("asWantedGui.jailInfo.Lore", jailInfoLore);
 		messages.set("asWantedGui.quit", String.valueOf("&7退出菜单"));

@@ -344,7 +344,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 	        int i = 0;
 	        int playerWantedTime = 0;
 	        int targetTime = 0;
-	        int JailTime = 0;
+	        int JailTime = 1;
 	        int wantedPlayerTimeDeduction = Integer.valueOf(Config.getConfig("timeTick.wantedPlayerTimeDeduction").replace("min", ""))*2;
 	        int targetTimeMessage = Integer.valueOf(Config.getConfig("timeTick.targetTimeMessage").replace("min", ""))*2;
 	        @Override
@@ -446,7 +446,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 				int killerAsWantedCumulativeNumber = KillerData.getInt("asWanted.cumulativenumber");
 				int killerAsWantedContinuityNumber = KillerData.getInt("asWanted.continuitynumber");
 				//当为被捕目标时?
-				if(KillerData.getString("asWanted.target").equals(player.getName())){
+				if(KillerData.getString("asWanted.target").toLowerCase().equals(player.getName().toLowerCase())){
 					if(playerWantedPoints == 0){
 						KillerData.set("asWanted.target", String.valueOf("N/A"));
 						KillerData.set("asWanted.cumulativenumber", Integer.valueOf(0));
@@ -457,13 +457,15 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 					}
 			        int jailPlayerTime = Integer.valueOf(Config.getConfig("timeTick.jailPlayerTimeDeduction").replace("min", ""))*playerWantedPoints;
 			        
-			        JailManager.playerJoinJail(player);
 					PlayerData.set("jail.times", Integer.valueOf(jailPlayerTime));
 					PlayerData.set("jail.cumulativeNumber", Integer.valueOf(playerJailCumulativeNumber + 1));
 					PlayerData.set("wanted.points", Integer.valueOf(0));
 					onDeleteList(player.getName(),"WantedList");
 					onCreateList(player.getName(),"JailedList");
 					//TODO 被抓消息 player
+			        JailManager.playerJoinJail(player);
+					player.spigot().respawn();
+					JailManager.playerTeleportJail(player);
 					player.sendMessage(Message.getMsg("player.jailedJoinMessage",String.valueOf(jailPlayerTime)));
 					
 					if(killerWantedPoints >= playerWantedPoints){

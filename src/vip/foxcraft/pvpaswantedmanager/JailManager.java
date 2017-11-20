@@ -50,7 +50,7 @@ public class JailManager implements Listener {
         	i++;
         }
         }
-        teleport(player,location);
+        player.teleport(location);
 	}
 	static public void playerJoinJail(Player player){
 		DataFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "PlayerData" + File.separator + player.getName() +".yml");
@@ -126,7 +126,10 @@ public class JailManager implements Listener {
 	public void PlayerJoinEvent(PlayerJoinEvent event){
 		if(Config.getConfig("jail.eventManager.joinServer.enabled").equals("false"))return;
 		Player player = event.getPlayer();
-		if(isJailPlayer(player))playerTeleportJail(player);;
+		if(isJailPlayer(player)){
+			playerTeleportJail(player);;
+			player.sendMessage(Message.getMsg("player.timeDeductionJailedMessage",PVPAsWantedManager.onLoadData(player.getName()).getString("jail.times")));
+		}
 	}
 	@EventHandler
 	public void PlayerDropItemEvent(PlayerDropItemEvent event){
@@ -225,10 +228,5 @@ public class JailManager implements Listener {
 		if(Config.getConfig("jail.eventManager.bucket.enabled").equals("false"))return;
 		Player player = event.getPlayer();
 		if(isJailPlayer(player))event.setCancelled(true);
-	}
-	@EventHandler
-	public void PlayerRespawnEvent(PlayerBucketEmptyEvent event){
-		Player player = event.getPlayer();
-		if(isJailPlayer(player))playerTeleportJail(player);
 	}
 }
