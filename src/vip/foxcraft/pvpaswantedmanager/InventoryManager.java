@@ -49,7 +49,7 @@ public class InventoryManager implements Listener {
 								event.setCancelled(true);
 								return;
 							}
-							if(name.equals(player.getName())){
+							if(name.toLowerCase().equals(player.getName().toLowerCase())){
 								player.sendMessage(Message.getMsg("player.noTargetMeMessage"));
 								event.setCancelled(true);
 								return;

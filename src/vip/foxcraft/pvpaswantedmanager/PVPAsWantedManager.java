@@ -9,6 +9,7 @@ import java.util.HashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -132,10 +133,11 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
         DataFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "data.dat");
 		if(!DataFile.exists()){
 			YamlConfiguration Data = new YamlConfiguration();
-			ArrayList<String>List = new ArrayList<String>();
-			Data.set("WantedList", List);
+			ArrayList<String>WantedList = new ArrayList<String>();
+			ArrayList<String>JailedList = new ArrayList<String>();
+			Data.set("WantedList", WantedList);
 			//TODO 记录正在坐牢的玩家
-			Data.set("jailedList", List);
+			Data.set("JailedList", JailedList);
 			try {Data.save(DataFile);} catch (IOException e) {e.printStackTrace();}
 		}
 		
@@ -228,7 +230,18 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 		String playerName = args[1];
 		if(isPlayerOnline(playerName)){
 			Player player = Bukkit.getPlayer(playerName);
-			JailManager.playerJoinJail(player);
+			Location location = player.getLocation();
+	        YamlConfiguration PlayerData = PVPAsWantedManager.onLoadData(player.getName());
+	        int playerX = location.getBlockX();
+	        int playerY = location.getBlockY();
+	        int playerZ = location.getBlockZ();
+	        String playerWorld = location.getWorld().getName();
+	        PlayerData.set("attribute.X", playerX);
+	        PlayerData.set("attribute.Y", playerY);
+	        PlayerData.set("attribute.Z", playerZ);
+	        PlayerData.set("attribute.World", playerWorld);
+	        PVPAsWantedManager.onSaveData(player.getName(), PlayerData);
+			JailManager.playerJoinJail(player,location);
 		}else{
 			sender.sendMessage("玩家必须是在线状态!");
 		}
@@ -326,10 +339,10 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 			   PlayerData.set("asWanted.continuitynumber", Integer.valueOf(0));
 			   //记录玩家等级，不解释
 			   PlayerData.set("attribute.level", Integer.valueOf(0));
-			   PlayerData.set("attribute.originalX", Integer.valueOf(0));
-			   PlayerData.set("attribute.originalY", Integer.valueOf(0));
-			   PlayerData.set("attribute.originalZ", Integer.valueOf(0));
-			   PlayerData.set("attribute.originalWorld", String.valueOf("world"));
+			   PlayerData.set("attribute.X", Integer.valueOf(0));
+			   PlayerData.set("attribute.Y", Integer.valueOf(0));
+			   PlayerData.set("attribute.Z", Integer.valueOf(0));
+			   PlayerData.set("attribute.World", String.valueOf("world"));
 			   onSaveData(player.getName(), PlayerData);
 		  	   try{
 		  		   PlayerData.save(DataFile);
@@ -452,6 +465,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 						KillerData.set("asWanted.cumulativenumber", Integer.valueOf(0));
 						//通缉失败 killer
 						killer.sendMessage(Message.getMsg("player.nullTargetMessage"));
+						onDeleteList(player.getName(),"WantedList");
 						onSaveData(killer.getName() , KillerData);
 						return;
 					}
@@ -462,10 +476,19 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 					PlayerData.set("wanted.points", Integer.valueOf(0));
 					onDeleteList(player.getName(),"WantedList");
 					onCreateList(player.getName(),"JailedList");
-					//TODO 被抓消息 player
-			        JailManager.playerJoinJail(player);
+					//被抓时记录位置(此处无法用void保存)
+					Location location = player.getLocation();
+			        int playerX = location.getBlockX();
+			        int playerY = location.getBlockY();
+			        int playerZ = location.getBlockZ();
+			        String playerWorld = location.getWorld().getName();
+			        PlayerData.set("attribute.X", playerX);
+			        PlayerData.set("attribute.Y", playerY);
+			        PlayerData.set("attribute.Z", playerZ);
+			        PlayerData.set("attribute.World", playerWorld);
 					player.spigot().respawn();
-					JailManager.playerTeleportJail(player);
+					JailManager.playerJoinJail(player,location);
+					// 被抓消息 player 
 					player.sendMessage(Message.getMsg("player.jailedJoinMessage",String.valueOf(jailPlayerTime)));
 					
 					if(killerWantedPoints >= playerWantedPoints){
@@ -484,6 +507,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 						value= playerWantedPoints/4*taskRewardMoney;
 					}else{
 						value= ((playerWantedPoints-killerWantedPoints)+playerWantedPoints/4)*taskRewardMoney;
+						
 					}
 					int money = (int)value*-1;
 					EditMoney(killer.getName(),money);

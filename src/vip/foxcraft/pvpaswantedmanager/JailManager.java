@@ -17,7 +17,6 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.*;
 
 public class JailManager implements Listener {
-	static File DataFile;
 	static public void teleport(Player player,Location location){
 		Double X = location.getX();
 		Double Y = location.getY();
@@ -52,18 +51,8 @@ public class JailManager implements Listener {
         }
         player.teleport(location);
 	}
-	static public void playerJoinJail(Player player){
-		DataFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "PlayerData" + File.separator + player.getName() +".yml");
-        YamlConfiguration PlayerData = PVPAsWantedManager.onLoadData(player.getName());
-        int playerX = player.getLocation().getBlockX();
-        int playerY = player.getLocation().getBlockY();
-        int playerZ = player.getLocation().getBlockZ();
-        String playerWorld = player.getWorld().getName();
-        PlayerData.set("attribute.originalX", playerX);
-        PlayerData.set("attribute.originalY", playerY);
-        PlayerData.set("attribute.originalZ", playerZ);
-        PlayerData.set("attribute.originalWorld", playerWorld);
-        PVPAsWantedManager.onSaveData(player.getName(), PlayerData);
+	static public void playerJoinJail(Player player,Location location){
+        
         double jailX = Integer.valueOf(Config.getConfig("jail.location.X"))+0.5;
         double jailY = Integer.valueOf(Config.getConfig("jail.location.Y"));
         double jailZ = Integer.valueOf(Config.getConfig("jail.location.Z"))+0.5;
@@ -84,18 +73,17 @@ public class JailManager implements Listener {
 	}
 	
 	static public void playerQuitJail(Player player){
-		DataFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "PlayerData" + File.separator + player.getName() +".yml");
         YamlConfiguration PlayerData = PVPAsWantedManager.onLoadData(player.getName());
-        double playerX = PlayerData.getInt("attribute.originalX");
-        double playerY = PlayerData.getInt("attribute.originalY");
-        double playerZ = PlayerData.getInt("attribute.originalZ");
-        World playerWorld = Bukkit.getWorld(PlayerData.getString("attribute.originalWorld"));
+        double playerX = PlayerData.getInt("attribute.X");
+        double playerY = PlayerData.getInt("attribute.Y");
+        double playerZ = PlayerData.getInt("attribute.Z");
+        World playerWorld = Bukkit.getWorld(PlayerData.getString("attribute.World"));
         Location playerLocatioin = new Location(playerWorld,playerX,playerY,playerZ);
         teleport(player,playerLocatioin);
-        PlayerData.set("attribute.originalX", Integer.valueOf(0));
-        PlayerData.set("attribute.originalY", Integer.valueOf(0));
-        PlayerData.set("attribute.originalZ", Integer.valueOf(0));
-        PlayerData.set("attribute.originalWorld", String.valueOf("world"));
+        PlayerData.set("attribute.X", Integer.valueOf(0));
+        PlayerData.set("attribute.Y", Integer.valueOf(0));
+        PlayerData.set("attribute.Z", Integer.valueOf(0));
+        PlayerData.set("attribute.World", String.valueOf("world"));
 		PVPAsWantedManager.onSaveData(player.getName(),PlayerData);
 	}
 	
@@ -112,7 +100,6 @@ public class JailManager implements Listener {
 	}
 	
 	public Boolean isJailPlayer(Player player){
-		DataFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "PlayerData" + File.separator + player.getName() +".yml");
         YamlConfiguration PlayerData = PVPAsWantedManager.onLoadData(player.getName());
         int playerJailPoints = PlayerData.getInt("jail.times");
         if(playerJailPoints > 0){
