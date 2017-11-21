@@ -17,7 +17,7 @@ public class Message {
         Bukkit.getConsoleSender().sendMessage("§8[§6PVPAsWantedManager§8] §cCreate Message.yml");
 		messages = new YamlConfiguration();
 		messages.set("asWantedGui.guiName", String.valueOf("&4&l通缉任务列表"));
-		messages.set("asWantedGui.wantedSkull.Name", String.valueOf("&c&o{0}"));
+		messages.set("asWantedGui.wantedSkull.Name", String.valueOf("&c&o&l{0}"));
 		messages.set("asWantedGui.wantedSkull.Online", String.valueOf("&2在线"));
 		messages.set("asWantedGui.wantedSkull.Offline", String.valueOf("&c离线"));
         ArrayList<String> skullLore = new ArrayList<String>();
@@ -42,8 +42,8 @@ public class Message {
 		infoLore.add("&3通缉目标: &7{4}");
 		infoLore.add("&3累计通缉次数: &7{5}");
 		infoLore.add("&3连续通缉次数: &7{6}");
-		infoLore.add("&6经验加成: &a{7}%");
 		messages.set("asWantedGui.info.Lore", infoLore);
+		messages.set("asWantedGui.info.exp", String.valueOf("&6经验加成: &a{0}%"));
 		messages.set("asWantedGui.jailInfo.Name", String.valueOf("&l监狱时间"));
 		ArrayList<String> jailInfoLore = new ArrayList<String>();
 		jailInfoLore.add("&6剩余时间: &c{0}分钟");
@@ -75,7 +75,7 @@ public class Message {
 		messages.set("setPlayerGui.asWanted.Lore", asWantedLore);
 		messages.set("player.newWantedMessage", String.valueOf("&8[&4击杀&8] &7你击杀了 &6{0}&7! PK值达到 &e{1}&7!"));
 		messages.set("player.deathMessage", String.valueOf("&8[&4死亡&8] &7你因为PK值导致额外扣取 &c{0}&7 经验等级"));
-		messages.set("player.expMessage", String.valueOf("&8[&6经验&8] &7你因为PK值获得额外 &e{0}&7 经验"));
+		messages.set("player.expMessage", String.valueOf("&8[&6经验&8] &7你因为PK值获得额外 &e{0}&7 经验 &7[{1}->{2}]"));
 		messages.set("player.noTargetMeMessage", String.valueOf("&8[&c通缉&8] &7你不能通缉你自己!"));
 		messages.set("player.nullTargetMessage", String.valueOf("&8[&c通缉&8] &7你的通缉任务失败!连续通缉次数归零! &7（&c原因&7:目标PK值已消除 或被他人抓获）"));
 		messages.set("player.onlineTargetMessage", String.valueOf("&8[&c通缉&8] &7你的通缉目标 &c{0}&7 当前PK值为: {1} ，平面坐标（{2}，{3}），所在世界 {4}"));

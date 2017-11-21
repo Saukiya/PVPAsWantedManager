@@ -106,6 +106,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 	}
 	public void setPlayerLevel(Player player , int playerWantedPoints){
 		int level = player.getLevel() - playerWantedPoints;
+		if(level<0)level=0;
 		player.setLevel(level);
 		player.sendMessage(Message.getMsg("player.deathMessage",String.valueOf(level)));
 	}
@@ -510,10 +511,11 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 					//TODO 通缉奖励 killer
 					double value = 0.0D;
 					Double taskRewardMoney = Double.valueOf(Config.getConfig("TaskReward.money"));
+					double TaskRewardBasicMoney = Double.valueOf(Config.getConfig("TaskReward.basicMoney"));
 					if(killerWantedPoints >= playerWantedPoints){
-						value= playerWantedPoints/4*taskRewardMoney;
+						value= playerWantedPoints/4*taskRewardMoney+TaskRewardBasicMoney;
 					}else{
-						value= ((playerWantedPoints-killerWantedPoints)+playerWantedPoints/4)*taskRewardMoney;
+						value= ((playerWantedPoints-killerWantedPoints)+playerWantedPoints/4)*taskRewardMoney+TaskRewardBasicMoney;
 						
 					}
 					int money = (int)value*-1;
@@ -551,7 +553,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 	public void onPlayerExpChange(PlayerExpChangeEvent event){
 		Player player = event.getPlayer();
 		YamlConfiguration PlayerData = onLoadData(player.getName());
-		if(getConfig().getBoolean("extraExp.enabled") == true){
+		if(Config.getConfig("extraExp.enabled").equals("true")){
 			int playerWantedPoints = PlayerData.getInt("wanted.points");
 			if(playerWantedPoints > 0){
 				int exp = event.getAmount();
@@ -560,7 +562,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 				int addExp = Integer.valueOf(String.valueOf(exp*playerWantedPoints*value/100));
 				event.setAmount(addExp + exp);
 				if(getConfig().getBoolean("extraExp.message") == true)
-				player.sendMessage(Message.getMsg("player.expMessage", String.valueOf(addExp), String.valueOf(Integer.valueOf(playerWantedPoints*value) + "%")));
+				player.sendMessage(Message.getMsg("player.expMessage", String.valueOf(addExp), String.valueOf(exp), String.valueOf(exp+addExp)));
 				onSaveData(player.getName(), PlayerData);
 			}
 		}

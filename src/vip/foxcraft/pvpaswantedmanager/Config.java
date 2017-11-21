@@ -19,7 +19,8 @@ public class Config {
 		//TODO false TaskRewardGoldCoin
 		config.set("CancellAsWantedTarget.enabled", Boolean.valueOf(true));
 		config.set("CancellAsWantedTarget.money", Integer.valueOf(100));
-		config.set("TaskReward.money", Integer.valueOf(500));
+		config.set("TaskReward.basicMoney", Integer.valueOf(500));
+		config.set("TaskReward.money", Integer.valueOf(200));
 		config.set("TaskReward.exp", Integer.valueOf(1));
 		config.set("asWantedGui.ID.glass", String.valueOf("160:15"));
 		config.set("asWantedGui.ID.pageDown", Integer.valueOf("262"));

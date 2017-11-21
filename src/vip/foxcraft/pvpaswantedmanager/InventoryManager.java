@@ -173,6 +173,7 @@ public class InventoryManager implements Listener {
 			double Money = 0D;
             int value;
 			double TaskRewardMoney = Double.valueOf(Config.getConfig("TaskReward.money"));
+			double TaskRewardBasicMoney = Double.valueOf(Config.getConfig("TaskReward.basicMoney"));
 			
 	        String online = Message.getMsg("asWantedGui.wantedSkull.Online");
 	        for (Map.Entry<String, Integer> OnlineList : Onlinelist) {
@@ -185,7 +186,7 @@ public class InventoryManager implements Listener {
 	            if(Integer.valueOf(wantedPoints) <wantedpoints){
 	            	value = wantedpoints - Integer.valueOf(wantedPoints);
 	            }
-	            Money = (value+wantedpoints*0.25)*TaskRewardMoney;
+	            Money = (value+wantedpoints*0.25)*TaskRewardMoney+TaskRewardBasicMoney;
 	            value = wantedpoints - value;
 	            String PKPoints = "-"+value;
 	            if(value==0){
@@ -215,7 +216,7 @@ public class InventoryManager implements Listener {
 	            	value = wantedpoints - Integer.valueOf(wantedPoints);
 	            }
 	            
-	            Money = (value+wantedpoints*0.25)*TaskRewardMoney;
+	            Money = (value+wantedpoints*0.25)*TaskRewardMoney+TaskRewardBasicMoney;
 	            value = wantedpoints - value;
 	            String PKPoints = String.valueOf(value);
 	            if(value==0){
@@ -308,8 +309,9 @@ public class InventoryManager implements Listener {
 		ItemMeta infoMeta = info.getItemMeta();
 		info.setDurability((short) 3);
 	    ((SkullMeta) infoMeta).setOwner(player.getName());
-		ArrayList<String> infoLore = Message.getList("asWantedGui.info.Lore", wantedPoints, wantedCumulativePoints, wantedHighestPoints, jailCumulativeNumber, asWantedTarget, asWantedCumulativeNumber, asWantedContinuityNumber,String.valueOf(Integer.valueOf(wantedPoints)*10));
-		if(Config.getConfig("extraExp.enabled").equals("false"))infoLore.remove(7);
+	    int pointsValueExp = Integer.valueOf(Config.getConfig("extraExp.pointsValue").replace("%", ""));
+		ArrayList<String> infoLore = Message.getList("asWantedGui.info.Lore", wantedPoints, wantedCumulativePoints, wantedHighestPoints, jailCumulativeNumber, asWantedTarget, asWantedCumulativeNumber, asWantedContinuityNumber);
+		if(Config.getConfig("extraExp.enabled").equals("true"))infoLore.add(Message.getMsg("asWantedGui.info.exp", String.valueOf(Integer.valueOf(wantedPoints)*pointsValueExp)));
 		infoMeta.setDisplayName(Message.getMsg("asWantedGui.info.Name", player.getName()));
 		infoMeta.setLore(infoLore);
 		info.setItemMeta(infoMeta);
