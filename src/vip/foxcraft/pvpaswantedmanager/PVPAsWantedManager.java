@@ -400,28 +400,35 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 					}
 					if(!String.valueOf(String.valueOf(TargetName)).equals("N/A")){
 						YamlConfiguration TargetData = onLoadData(TargetName);
-						if(TargetData.getInt("wanted.points") == 0){
-							PlayerData.set("asWanted.target", String.valueOf("N/A"));
-							PlayerData.set("asWanted.continuitynumber", Integer.valueOf(0));
-							player.sendMessage(Message.getMsg("player.nullTargetMessage", TargetName));
-						}else{
-							if(targetTime >= targetTimeMessage){
-								if(isPlayerOnline(TargetName) == true){
-									Player Target = Bukkit.getPlayer(TargetName);
-									String world = Target.getWorld().getName();
-									String x = String.valueOf(Target.getLocation().getX());
-									String z = String.valueOf(Target.getLocation().getZ());
-									
-									player.sendMessage(Message.getMsg( "player.onlineTargetMessage", TargetName, String.valueOf(TargetData.getInt(TargetName + ".wanted.points")), x, z,  world));
-								}else{
-									player.sendMessage(Message.getMsg( "player.offlineTargetMessage", TargetName));
-								}
-								targetTimeMessage = 0;
+						if(TargetData !=null){
+							if(TargetData.getInt("wanted.points") == 0){
+								PlayerData.set("asWanted.target", String.valueOf("N/A"));
+								PlayerData.set("asWanted.continuitynumber", Integer.valueOf(0));
+								player.sendMessage(Message.getMsg("player.nullTargetMessage", TargetName));
 							}else{
-								targetTimeMessage++;
+								if(targetTime >= targetTimeMessage){
+									if(isPlayerOnline(TargetName) == true){
+										Player Target = Bukkit.getPlayer(TargetName);
+										String world = Target.getWorld().getName();
+										String x = String.valueOf(Target.getLocation().getX());
+										String z = String.valueOf(Target.getLocation().getZ());
+										
+										player.sendMessage(Message.getMsg( "player.onlineTargetMessage", TargetName, String.valueOf(TargetData.getInt(TargetName + ".wanted.points")), x, z,  world));
+									}else{
+										player.sendMessage(Message.getMsg( "player.offlineTargetMessage", TargetName));
+									}
+									targetTimeMessage = 0;
+								}else{
+									targetTimeMessage++;
+								}
+								
 							}
+						}else{
+							PlayerData.set("asWanted.target", String.valueOf("N/A"));
+							player.sendMessage(Message.getMsg("player.nullTargetMessage", TargetName));
 						}
 					}
+					
 					
 					PlayerData.set("wanted.points", playerWantedPoints);
 					PlayerData.set("jail.times", playerJailTimes);

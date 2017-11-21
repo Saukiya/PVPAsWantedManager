@@ -109,6 +109,8 @@ public class InventoryManager implements Listener {
 
 	@SuppressWarnings("deprecation")
 	static public void openAsWantedGUI(Player player,int page){
+		YamlConfiguration PlayerData = PVPAsWantedManager.onLoadData(player.getName());
+		String wantedPoints = PlayerData.getString("wanted.points");
 		Inventory inventory = Bukkit.createInventory(null, 54, Message.getMsg("asWantedGui.guiName"));
 		ArrayList<String> WantedList = new ArrayList<String>();
 		int number = (page-1)*36;
@@ -123,90 +125,120 @@ public class InventoryManager implements Listener {
 		int playerLevel = 0;
 		//设置行数自动化
 		int skullNumber = 9;
-		for(int i = 0; i <= 36 && (i+number) < WantedList.size();){
-			String playerName = WantedList.get(i+number);
-			YamlConfiguration WantedData = PVPAsWantedManager.onLoadData(playerName);
-			if(WantedData != null){
-				playerWantedPoints = WantedData.getInt("wanted.points");
-				playerLevel = WantedData.getInt("attribute.level");
-			}else{
-				playerWantedPoints = 0;
-				playerLevel = 0;
+		if(WantedList.size() >0){
+			for(int i = 0; i <= 36 && (i+number) < WantedList.size();){
+				String playerName = WantedList.get(i+number);
+				YamlConfiguration WantedData = PVPAsWantedManager.onLoadData(playerName);
+				if(WantedData != null){
+					playerWantedPoints = WantedData.getInt("wanted.points");
+					playerLevel = WantedData.getInt("attribute.level");
+				}else{
+					playerWantedPoints = 0;
+					playerLevel = 0;
+				}
+				LevelMap.put(playerName, playerLevel);
+				if(PVPAsWantedManager.isPlayerOnline(playerName) == true){
+					//如果存在，则导入到在线玩家Map
+					OnlineMap.put(playerName, playerWantedPoints);
+				}else{
+					//如果不存在，则导入离线玩家Map
+					OfflineMap.put(playerName, playerWantedPoints);
+				}
+				i++;
 			}
-			LevelMap.put(playerName, playerLevel);
-			if(PVPAsWantedManager.isPlayerOnline(playerName) == true){
-				//如果存在，则导入到在线玩家Map
-				OnlineMap.put(playerName, playerWantedPoints);
-			}else{
-				//如果不存在，则导入离线玩家Map
-				OfflineMap.put(playerName, playerWantedPoints);
-			}
-			i++;
+
+			
+			ArrayList<String> loreList = new ArrayList<String>();
+	        List<Map.Entry<String, Integer>> Onlinelist = new ArrayList<Map.Entry<String, Integer>>(OnlineMap.entrySet());
+	        Collections.sort(Onlinelist, new Comparator<Map.Entry<String, Integer>>() {
+	            @Override  
+	            public int compare(Entry<String, Integer> o1, Entry<String, Integer> o2) {  
+	                return o2.getValue().compareTo(o1.getValue());  
+	            }
+	        });
+	        List<Map.Entry<String, Integer>> Offlinelist = new ArrayList<Map.Entry<String, Integer>>(OfflineMap.entrySet());
+	        Collections.sort(Offlinelist, new Comparator<Map.Entry<String, Integer>>() {
+	            @Override  
+	            public int compare(Entry<String, Integer> o1, Entry<String, Integer> o2) {  
+	                return o2.getValue().compareTo(o1.getValue());  
+	            }
+	        });
+
+			ItemStack itemStack = new ItemStack(Material.SKULL_ITEM);
+			ItemMeta itemMeta = itemStack.getItemMeta();
+			String name;
+			int wantedpoints;
+			int level;
+
+			double Money = 0D;
+            int value;
+			double TaskRewardMoney = Double.valueOf(Config.getConfig("TaskReward.money"));
+			
+	        String online = Message.getMsg("asWantedGui.wantedSkull.Online");
+	        for (Map.Entry<String, Integer> OnlineList : Onlinelist) {
+	            name = OnlineList.getKey();
+	            wantedpoints = OnlineList.getValue();
+	            level = LevelMap.get(name);
+	            itemStack = new ItemStack(Material.SKULL_ITEM);
+	            itemMeta = itemStack.getItemMeta();
+	            value = 0;
+	            if(Integer.valueOf(wantedPoints) <wantedpoints){
+	            	value = wantedpoints - Integer.valueOf(wantedPoints);
+	            }
+	            Money = (value+wantedpoints*0.25)*TaskRewardMoney;
+	            value = wantedpoints - value;
+	            String PKPoints = "-"+value;
+	            if(value==0){
+	            	PKPoints = "§0";
+	            }else{
+	            	PKPoints = "§c§-l"+value+"§a";
+	            }
+				itemStack.setDurability((short) 3);
+			    ((SkullMeta) itemMeta).setOwner(name);
+			    loreList = Message.getList("asWantedGui.wantedSkull.Lore", String.valueOf(wantedpoints), String.valueOf(level), online,String.valueOf(Money),PKPoints);
+				itemMeta.setDisplayName(Message.getMsg("asWantedGui.wantedSkull.Name", name));
+				itemMeta.setLore(loreList);
+				itemStack.setItemMeta(itemMeta);
+				inventory.setItem(skullNumber, itemStack);
+				skullNumber ++;
+	        }
+
+	        String offline = Message.getMsg("asWantedGui.wantedSkull.Offline");
+	        for (Map.Entry<String, Integer> OfflineList : Offlinelist) {
+	            name = OfflineList.getKey();
+	            wantedpoints = OfflineList.getValue();
+	            level = LevelMap.get(name);
+	            itemStack = new ItemStack(Material.SKULL_ITEM);
+	            itemMeta = itemStack.getItemMeta();
+	            value = 0;
+	            if(Integer.valueOf(wantedPoints) <wantedpoints){
+	            	value = wantedpoints - Integer.valueOf(wantedPoints);
+	            }
+	            
+	            Money = (value+wantedpoints*0.25)*TaskRewardMoney;
+	            value = wantedpoints - value;
+	            String PKPoints = String.valueOf(value);
+	            if(value==0){
+	            	PKPoints = "§0"+value;
+	            }else{
+	            	PKPoints = "§c§l-"+value+"§a";
+	            }
+				itemStack.setDurability((short) 3);
+			    ((SkullMeta) itemMeta).setOwner(name);
+			    loreList = Message.getList("asWantedGui.wantedSkull.Lore", String.valueOf(wantedpoints), String.valueOf(level), offline,String.valueOf(Money),PKPoints);
+				itemMeta.setDisplayName(Message.getMsg("asWantedGui.wantedSkull.Name", name));
+				itemMeta.setLore(loreList);
+				itemStack.setItemMeta(itemMeta);
+				inventory.setItem(skullNumber, itemStack);
+				skullNumber ++;
+	        }
+		}else{
+			ItemStack Null = new ItemStack(Material.THIN_GLASS);
+			ItemMeta NullMeta = Null.getItemMeta();
+			NullMeta.setDisplayName(Message.getMsg("asWantedGui.wantedSkull.null"));
+			Null.setItemMeta(NullMeta);
+			inventory.setItem(9, Null);
 		}
-
-		
-		ArrayList<String> loreList = new ArrayList<String>();
-        List<Map.Entry<String, Integer>> Onlinelist = new ArrayList<Map.Entry<String, Integer>>(OnlineMap.entrySet());
-        Collections.sort(Onlinelist, new Comparator<Map.Entry<String, Integer>>() {
-            @Override  
-            public int compare(Entry<String, Integer> o1, Entry<String, Integer> o2) {  
-                return o2.getValue().compareTo(o1.getValue());  
-            }
-        });
-        List<Map.Entry<String, Integer>> Offlinelist = new ArrayList<Map.Entry<String, Integer>>(OfflineMap.entrySet());
-        Collections.sort(Offlinelist, new Comparator<Map.Entry<String, Integer>>() {
-            @Override  
-            public int compare(Entry<String, Integer> o1, Entry<String, Integer> o2) {  
-                return o2.getValue().compareTo(o1.getValue());  
-            }
-        });
-
-		ItemStack itemStack = new ItemStack(Material.SKULL_ITEM);
-		ItemMeta itemMeta = itemStack.getItemMeta();
-		String name;
-		int wantedpoints;
-		int level;
-
-        
-        String online = Message.getMsg("asWantedGui.wantedSkull.Online");
-        for (Map.Entry<String, Integer> OnlineList : Onlinelist) {
-            name = OnlineList.getKey();
-            wantedpoints = OnlineList.getValue();
-            level = LevelMap.get(name);
-
-            itemStack = new ItemStack(Material.SKULL_ITEM);
-            itemMeta = itemStack.getItemMeta();
-            
-
-			itemStack.setDurability((short) 3);
-		    ((SkullMeta) itemMeta).setOwner(name);
-		    loreList = Message.getList("asWantedGui.wantedSkull.Lore", String.valueOf(wantedpoints), String.valueOf(level), online);
-			itemMeta.setDisplayName(Message.getMsg("asWantedGui.wantedSkull.Name", name));
-			itemMeta.setLore(loreList);
-			itemStack.setItemMeta(itemMeta);
-			inventory.setItem(skullNumber, itemStack);
-			skullNumber ++;
-        }
-
-        String offline = Message.getMsg("asWantedGui.wantedSkull.Offline");
-        for (Map.Entry<String, Integer> OfflineList : Offlinelist) {
-            name = OfflineList.getKey();
-            wantedpoints = OfflineList.getValue();
-            level = LevelMap.get(name);
-
-            itemStack = new ItemStack(Material.SKULL_ITEM);
-            itemMeta = itemStack.getItemMeta();
-            
-
-			itemStack.setDurability((short) 3);
-		    ((SkullMeta) itemMeta).setOwner(name);
-		    loreList = Message.getList("asWantedGui.wantedSkull.Lore", String.valueOf(wantedpoints), String.valueOf(level), offline);
-			itemMeta.setDisplayName(Message.getMsg("asWantedGui.wantedSkull.Name", name));
-			itemMeta.setLore(loreList);
-			itemStack.setItemMeta(itemMeta);
-			inventory.setItem(skullNumber, itemStack);
-			skullNumber ++;
-        }
 
         String glassData = String.valueOf(Config.getConfig("asWantedGui.ID.glass"));
         int glassMaterial = 0;
@@ -221,9 +253,11 @@ public class InventoryManager implements Listener {
         Material glassType = Material.getMaterial(glassMaterial);
 		ItemStack glass = new ItemStack(glassType);
 		glass.setDurability((short) glassDurability);
-		ItemMeta glassMeta = glass.getItemMeta();
-		glassMeta.setDisplayName(" ");
-		glass.setItemMeta(glassMeta);
+        if(!glassData.equals("0")){
+    		ItemMeta glassMeta = glass.getItemMeta();
+    		glassMeta.setDisplayName(" ");
+    		glass.setItemMeta(glassMeta);
+        }
 		for(int i=0;i < 4;){
 			inventory.setItem(i, glass);
 			i++;
@@ -261,8 +295,6 @@ public class InventoryManager implements Listener {
 			inventory.setItem(53, glass);
 		}
 
-		YamlConfiguration PlayerData = PVPAsWantedManager.onLoadData(player.getName());
-		String wantedPoints = PlayerData.getString("wanted.points");
 		String wantedCumulativePoints = PlayerData.getString("wanted.cumulativePoints");
 		String wantedHighestPoints = PlayerData.getString("wanted.highestPoints");
 		String jailCumulativeNumber = PlayerData.getString("jail.cumulativeNumber");
@@ -312,8 +344,12 @@ public class InventoryManager implements Listener {
 			String targetWantedPoints = "0";
 			if(!asWantedTarget.equals("N/A")){
 				YamlConfiguration targetData = PVPAsWantedManager.onLoadData(asWantedTarget);
-				targetWantedPoints = targetData.getString("wanted.points");
-				targetMeta.setDisplayName("§c" + Message.getMsg("asWantedGui.cancellTarget.name"));
+				if(targetData != null){
+					targetWantedPoints = targetData.getString("wanted.points");
+					targetMeta.setDisplayName("§c" + Message.getMsg("asWantedGui.cancellTarget.name"));
+				}else{
+					PlayerData.set("asWanted.target",String.valueOf("N/A"));
+				}
 			}else{
 				targetMeta.setDisplayName("§7" + Message.getMsg("asWantedGui.cancellTarget.name"));
 			}
