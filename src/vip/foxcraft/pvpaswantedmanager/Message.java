@@ -87,7 +87,7 @@ public class Message {
 		messages.set("player.timeDeductionJailedMessage", String.valueOf("&8[&c通缉&8] &7你还剩 &c{0}&7 分钟就能出狱!请不要擅自&c退出&7游戏!退出游戏不自动&c消除&7监狱时间!"));	
 		messages.set("player.jailedJoinMessage", String.valueOf("&8[&c通缉&8] &7你被&c逮捕&7了! 需要坐牢 &6{0}&7分钟! 请好好的在监狱改过自新！!"));
 		messages.set("player.jailedeventMessage", String.valueOf("&8[&c通缉&8] &7请老老实实的等待释放！"));
-		messages.set("player.asWantedArrestMessage", String.valueOf("&8[&c通缉&8] &7你成功的抓住了 &6{0}&7 通缉犯！&6任务奖励: &e{1}&7金币 &e{2}&7经验等级"));	
+		messages.set("player.asWantedArrestMessage", String.valueOf("&8[&c通缉&8] &7你成功的抓住了 &6{0}&7 通缉犯！&6任务奖励: &e{1}&7金币"));	
 		messages.set("player.noPermissionMessage", String.valueOf("&8[&c通缉&8] &7你没有权限"));
 		messages.set("player.nobalanceMessage", String.valueOf("&8[&c通缉&8] &7你没有足够的金币"));	
 		messages.set("admin.setJailMessage", String.valueOf("&8[&c通缉&8] &7设置监狱为:&7(&e{0}&7,&e{1}&7,&e{2}&7) &c世界:&7(&e{3}&7)"));

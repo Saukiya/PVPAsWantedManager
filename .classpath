@@ -4,7 +4,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
 	<classpathentry kind="lib" path="F:/游戏/我的世界/服务测试/开发库/服务端API/spigot-1.11.2.jar"/>
 	<classpathentry kind="lib" path="F:/游戏/我的世界/服务测试/开发库/其他API/PlaceholderAPI-2.8.2.jar"/>
-	<classpathentry kind="lib" path="F:/游戏/我的世界/服务测试/服务端/Foxcraft/plugins/Essentials.jar"/>
 	<classpathentry kind="lib" path="F:/游戏/我的世界/服务测试/开发库/其他API/Vault.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

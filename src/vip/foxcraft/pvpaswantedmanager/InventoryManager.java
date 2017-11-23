@@ -24,10 +24,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
-import com.earth2me.essentials.api.NoLoanPermittedException;
-import com.earth2me.essentials.api.UserDoesNotExistException;
-
-import net.ess3.api.Economy;
 
 public class InventoryManager implements Listener {	
 	@SuppressWarnings("deprecation")
@@ -86,10 +82,11 @@ public class InventoryManager implements Listener {
 							int targetWantedPoints = targetData.getInt("wanted.points");
 							int cancelltargetbalance = Integer.valueOf(Config.getConfig("CancellAsWantedTarget.money"));
 							int value = targetWantedPoints*cancelltargetbalance;
-							if(PVPAsWantedManager.EditMoney(player.getName(), value)){
+							if(Money.has(player.getName(), value)){
+								Money.take(player.getName(), value);
 								Data.set("asWanted.target", String.valueOf("N/A"));
 								PVPAsWantedManager.onSaveData(player.getName(), Data);
-								player.sendMessage(Message.getMsg("player.cancellTargetMessage",String.valueOf(value),String.valueOf(PVPAsWantedManager.GetMoney(player.getName()))));
+								player.sendMessage(Message.getMsg("player.cancellTargetMessage",String.valueOf(value),String.valueOf(Money.getBalance(player.getName()))));
 							}else{
 								player.sendMessage(Message.getMsg("player.nobalanceMessage"));
 							}
@@ -183,7 +180,7 @@ public class InventoryManager implements Listener {
 	            itemStack = new ItemStack(Material.SKULL_ITEM);
 	            itemMeta = itemStack.getItemMeta();
 	            value = 0;
-	            if(Integer.valueOf(wantedPoints) <wantedpoints){
+	            if(Integer.valueOf(wantedPoints)<=wantedpoints){
 	            	value = wantedpoints - Integer.valueOf(wantedPoints);
 	            }
 	            Money = (value+wantedpoints*0.25)*TaskRewardMoney+TaskRewardBasicMoney;

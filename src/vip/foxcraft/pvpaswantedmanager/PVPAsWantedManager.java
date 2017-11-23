@@ -6,10 +6,13 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -25,19 +28,15 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import com.earth2me.essentials.api.Economy;
-import com.earth2me.essentials.api.NoLoanPermittedException;
-import com.earth2me.essentials.api.UserDoesNotExistException;
-
+import net.milkbowl.vault.economy.Economy;
 import vip.foxcraft.pvpaswantedmanager.PlayerCommand;
 import vip.foxcraft.pvpaswantedmanager.Util.Placeholders;
 
-
-
-
-public class PVPAsWantedManager extends JavaPlugin implements Listener{
+public class PVPAsWantedManager extends JavaPlugin implements Listener
+{
 	static File DataFile;
-
+	private static PVPAsWantedManager instance = null;
+	
 	HashMap<String,BukkitRunnable> RunMap = new HashMap<String,BukkitRunnable>();
 
 	static public YamlConfiguration onLoadData(String name){
@@ -48,36 +47,22 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 			return PlayerData;
 		}
 		return null;
-		
 	}
-	
 	
 	static public void onSaveData(String name, YamlConfiguration PlayerData){
 		DataFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "PlayerData" + File.separator + name + ".yml");
 		try {PlayerData.save(DataFile);} catch (IOException e) {e.printStackTrace();}
 	}
 	
-	@SuppressWarnings("deprecation")
-	static public Boolean EditMoney(String name,int value){
-		Double money = 0.0D;
-		try {money = Economy.getMoney(name);} catch (UserDoesNotExistException e) {e.printStackTrace();}
-		if(money >= value){
-			money = money - value;
-			try {Economy.setMoney(name, money);} catch (NoLoanPermittedException e) {e.printStackTrace();} catch (UserDoesNotExistException e) {e.printStackTrace();}
-			return true;
-		}else{
-			return false;
-		}
-	}
-	@SuppressWarnings("deprecation")
-	static public int GetMoney(String name){
-		int money = 0;
-		try {money = (int) Economy.getMoney(name);} catch (UserDoesNotExistException e) {e.printStackTrace();}
-		return money;
+	public static PVPAsWantedManager getInstance()
+	{
+		return instance;
 	}
 	
+	@SuppressWarnings("deprecation")
 	static public Boolean isPlayerOnline(String player){
 		return Bukkit.getOfflinePlayer(player).isOnline();
+		
 	}
 	
 	static public void onCreateList(String player,String type){
@@ -110,12 +95,16 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 		player.setLevel(level);
 		player.sendMessage(Message.getMsg("player.deathMessage",String.valueOf(level)));
 	}
-
-
-
 	
 	@Override
-	public void onEnable(){
+	public void onEnable()
+	{
+		instance = this;
+		
+		if (!Setup.setup())
+		{
+			disablePlugin("[" + getDescription().getName() + "] Setup Failed");
+		}
 		
         Bukkit.getPluginManager().registerEvents(this, this);
         Bukkit.getPluginManager().registerEvents(new JailManager(), this);
@@ -304,12 +293,12 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 	}
 
 	@PlayerCommand(cmd="bal",des ="测试-查看自己的金钱")
-	public void bal(Player sender,String args[]) throws UserDoesNotExistException{
+	public void bal(Player sender,String args[]){
 		if(!sender.hasPermission("pvpaswantedmanager." + args[0])) {
 			sender.sendMessage(Message.getMsg("player.noPermissionMessage"));
 			return;
 		}
-			sender.sendMessage(""+Economy.getMoney(sender.getName()));
+			sender.sendMessage("");
 	}
 
 	@EventHandler
@@ -509,23 +498,17 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 					KillerData.set("asWanted.cumulativenumber", Integer.valueOf(killerAsWantedCumulativeNumber + 1));
 					KillerData.set("asWanted.continuitynumber", Integer.valueOf(killerAsWantedContinuityNumber + 1));
 					//TODO 通缉奖励 killer
-					double value = 0.0D;
+					double money = 0D;
+					int value = 0;
 					Double taskRewardMoney = Double.valueOf(Config.getConfig("TaskReward.money"));
 					double TaskRewardBasicMoney = Double.valueOf(Config.getConfig("TaskReward.basicMoney"));
-					if(killerWantedPoints >= playerWantedPoints){
-						value= playerWantedPoints/4*taskRewardMoney+TaskRewardBasicMoney;
-					}else{
-						value= ((playerWantedPoints-killerWantedPoints)+playerWantedPoints/4)*taskRewardMoney+TaskRewardBasicMoney;
-						
+					if(killerWantedPoints <= playerWantedPoints){
+						value= playerWantedPoints - killerWantedPoints;
 					}
-					int money = (int)value*-1;
-					EditMoney(killer.getName(),money);
-
-					Double taskRewardExp = Double.valueOf(Config.getConfig("TaskReward.exp"));
-					value = (player.getLevel()/killer.getLevel()+1)*taskRewardExp;
-					int exp = (int)value;
-					killer.setLevel(exp+killer.getLevel());
-					killer.sendMessage(Message.getMsg("player.asWantedArrestMessage",player.getName(),String.valueOf(money*-1),String.valueOf(exp)));
+					money = (value+playerWantedPoints*0.25)*taskRewardMoney+TaskRewardBasicMoney;
+					
+					Money.getEcononomy().depositPlayer(Playername, Money) //TODO
+					killer.sendMessage(Message.getMsg("player.asWantedArrestMessage",player.getName(),String.valueOf(value)));
 					
 					
 				}else{
@@ -567,11 +550,16 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener{
 			}
 		}
 	}
-
 	
 	@Override
 	public void onDisable(){
         Bukkit.getConsoleSender().sendMessage("§8[§6PVPAsWantedManager§8] §a通缉追捕 插件关闭! 插件作者: §eSaukiya");
 	}
 	
+	protected void disablePlugin(String reason)
+	{
+		Logger.getLogger("Minecraft").severe(reason);
+		onDisable();
+        getServer().getPluginManager().disablePlugin(this);
+	}
 }
