@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -18,6 +19,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -25,7 +27,10 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 
-public class InventoryManager implements Listener {	
+public class InventoryManager implements Listener {
+	static HashMap<Player,String> PKMap = new HashMap<Player,String>();
+	static HashMap<Player,String> JailMap = new HashMap<Player,String>();
+	
 	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onCheckAsWantedInventory(InventoryClickEvent event){
@@ -101,9 +106,94 @@ public class InventoryManager implements Listener {
 	}
 	@EventHandler
 	public void onCheckSetPlayerInventory(InventoryClickEvent event){
-		
+		Inventory inventory = event.getInventory();
+		String inventoryName = inventory.getName();
+		ItemStack item = event.getCurrentItem();
+		if(inventoryName.contains(Message.getMsg("setPlayerGui.guiName").replace("{0}",""))){
+			Player admin = (Player) event.getView().getPlayer();
+			if(item != null&&!item.getType().equals(Material.AIR)){
+				String player = inventory.getItem(4).getItemMeta().getDisplayName().replace("§4§l", "");
+				if(event.getRawSlot() <=26){
+					//当点到PK点数时
+					if(item.getItemMeta().getDisplayName().equals(Message.getMsg("setPlayerGui.wanted.Name"))){
+						if(JailMap.containsKey(admin)){
+							JailMap.remove(admin);
+						}
+						PKMap.put(admin, player);
+						admin.sendMessage(Message.getMsg("admin.waitForInputMessage"));
+						admin.closeInventory();
+					}
+					//当点到监狱时间时
+					if(item.getItemMeta().getDisplayName().equals(Message.getMsg("setPlayerGui.jail.Name"))){
+						if(PKMap.containsKey(admin)){
+							PKMap.remove(admin);
+						}
+						JailMap.put(admin, player);
+						admin.sendMessage(Message.getMsg("admin.waitForInputMessage"));
+						admin.closeInventory();
+					}
+					//当点到通缉目标时
+					if(item.getItemMeta().getDisplayName().equals(Message.getMsg("setPlayerGui.asWanted.Name"))){
+						YamlConfiguration PlayerData = PVPAsWantedManager.onLoadData(player);
+						if(!PlayerData.getString("asWanted,target").equals("N/A")){
+							PlayerData.set("asWanted.target", String.valueOf("N/A"));
+							PVPAsWantedManager.onSaveData(player, PlayerData);
+							openSetPlayerGui(admin,player);
+						}
+					}
+					//当点到退出菜单时
+					if(item.getItemMeta().getDisplayName().equals(Message.getMsg("asWantedGui.quit"))){
+						admin.closeInventory();
+					}
+				}
+			}
+			event.setCancelled(true);
+		}
 	}
 
+	@EventHandler
+	public void onPlayerChatEvent(AsyncPlayerChatEvent event){
+		Player admin = event.getPlayer();
+		if(PKMap.containsKey(admin)){
+			String player = PKMap.get(admin);
+			PKMap.remove(admin);
+			String message = event.getMessage();
+			if(Pattern.compile("[0-9]*").matcher(message).matches()){
+				int value = Integer.valueOf(message);
+				YamlConfiguration PlayerData = PVPAsWantedManager.onLoadData(player);
+				if(PlayerData.getInt("wanted.points")==0&& value > 0){
+					PVPAsWantedManager.onCreateList(player, "WantedList");
+				}else if(PlayerData.getInt("wanted.points")>0 && value ==0){
+					PVPAsWantedManager.onDeleteList(player, "WantedList");
+				}
+				PlayerData.set("wanted.points", value);
+				PVPAsWantedManager.onSaveData(player, PlayerData);
+				admin.sendMessage(Message.getMsg("admin.EditPlayerDataMessage"));
+			}else{
+				admin.sendMessage(Message.getMsg("admin.wrongFormatMessage"));
+			}
+			event.setCancelled(true);
+		}else if(JailMap.containsKey(admin)){
+			String player = JailMap.get(admin);
+			JailMap.remove(admin);
+			String message = event.getMessage();
+			if(Pattern.compile("[0-9]*").matcher(message).matches()){
+				int value = Integer.valueOf(message);
+				YamlConfiguration PlayerData = PVPAsWantedManager.onLoadData(player);
+				if(PlayerData.getInt("jail.times")==0&& value > 0){
+					PVPAsWantedManager.onCreateList(player, "JailedList");
+				}else if(PlayerData.getInt("jail.times")>0 && value ==0){
+					PVPAsWantedManager.onDeleteList(player, "JailedList");
+				}
+				PlayerData.set("jail.times", value);
+				PVPAsWantedManager.onSaveData(player, PlayerData);
+				admin.sendMessage(Message.getMsg("admin.EditPlayerDataMessage"));
+			}else{
+				admin.sendMessage(Message.getMsg("admin.wrongFormatMessage"));
+			}
+			event.setCancelled(true);
+		}
+	}
 	@SuppressWarnings("deprecation")
 	static public void openAsWantedGUI(Player player,int page){
 		YamlConfiguration PlayerData = PVPAsWantedManager.onLoadData(player.getName());
@@ -112,8 +202,8 @@ public class InventoryManager implements Listener {
 		ArrayList<String> WantedList = new ArrayList<String>();
 		int number = (page-1)*36;
 		YamlConfiguration Data = new YamlConfiguration();
-		PVPAsWantedManager.DataFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "data.dat");
-		try {Data.load(PVPAsWantedManager.DataFile);} catch (IOException | InvalidConfigurationException e) {e.printStackTrace();}
+		File file = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "data.dat");
+		try {Data.load(file);} catch (IOException | InvalidConfigurationException e) {e.printStackTrace();}
 		WantedList = (ArrayList<String>) Data.getStringList("WantedList");
 		HashMap<String,Integer> OnlineMap = new HashMap<String,Integer>();
 		HashMap<String,Integer> OfflineMap = new HashMap<String,Integer>();
@@ -166,7 +256,6 @@ public class InventoryManager implements Listener {
 			String name;
 			int wantedpoints;
 			int level;
-
 			double Money = 0D;
             int value;
 			double TaskRewardMoney = Double.valueOf(Config.getConfig("TaskReward.money"));
@@ -189,7 +278,7 @@ public class InventoryManager implements Listener {
 	            if(value==0){
 	            	PKPoints = "§0";
 	            }else{
-	            	PKPoints = "§c§-l"+value+"§a";
+	            	PKPoints = "§c§l-"+value+"§a";
 	            }
 				itemStack.setDurability((short) 3);
 			    ((SkullMeta) itemMeta).setOwner(name);
@@ -242,9 +331,8 @@ public class InventoryManager implements Listener {
         int glassMaterial = 0;
         int glassDurability = 0;
         if(glassData.contains(":")){
-        	glassData = glassData.replace(":", "-");
-        	glassMaterial = Integer.valueOf(glassData.split("-")[0]);
-        	glassDurability = Integer.valueOf(glassData.split("-")[1]);
+        	glassMaterial = Integer.valueOf(glassData.split(":")[0]);
+        	glassDurability = Integer.valueOf(glassData.split(":")[1]);
         }else{
         	glassMaterial = Integer.valueOf(glassData);
         }
@@ -268,7 +356,6 @@ public class InventoryManager implements Listener {
 			inventory.setItem(i, glass);
 			i++;
 		}
-		
 
 		Material pageDownType = Material.getMaterial(Integer.valueOf(Config.getConfig("asWantedGui.ID.pageDown")));
 		Material pageUpType = Material.getMaterial(Integer.valueOf(Config.getConfig("asWantedGui.ID.pageUp")));
@@ -357,16 +444,25 @@ public class InventoryManager implements Listener {
 			targetInfo.setItemMeta(targetMeta);
 			inventory.setItem(51, targetInfo);
 		}
-		
-		
 		player.openInventory(inventory);
 	}
 	
-	
+	@SuppressWarnings("deprecation")
 	static public void openSetPlayerGui(Player sender,String player){
-		//TODO 创建3个图标， wantedItem jailItem asWantedItem
+		//TODO 如果PlayerData为 Null 则不显示菜单
 		YamlConfiguration PlayerData = PVPAsWantedManager.onLoadData(player);
-		Inventory inventory = Bukkit.createInventory(null, 9, Message.getMsg("setPlayerGui.guiName"));
+		if(PlayerData == null){
+			sender.sendMessage(Message.getMsg("admin.playerNullMessage"));
+			return;
+		}
+		String wantedPoints = PlayerData.getString("wanted.points");
+		String wantedCumulativePoints = PlayerData.getString("wanted.cumulativePoints");
+		String wantedHighestPoints = PlayerData.getString("wanted.highestPoints");
+		String jailCumulativeNumber = PlayerData.getString("jail.cumulativeNumber");
+		String asWantedTarget = PlayerData.getString("asWanted.target");
+		String asWantedCumulativeNumber = PlayerData.getString("asWanted.cumulativenumber");
+		String asWantedContinuityNumber = PlayerData.getString("asWanted.continuitynumber");
+		Inventory inventory = Bukkit.createInventory(null, 27, Message.getMsg("setPlayerGui.guiName",player));
 		ItemStack wantedItem = new ItemStack(Material.GOLD_AXE);
 		ItemMeta wantedMeta = wantedItem.getItemMeta();
 		int wantedPoint = PlayerData.getInt("wanted.points");
@@ -387,15 +483,60 @@ public class InventoryManager implements Listener {
 		ItemStack asWantedItem = new ItemStack(Material.ARROW);
 		ItemMeta asWantedMeta = asWantedItem.getItemMeta();
 		asWantedMeta.setDisplayName(Message.getMsg("setPlayerGui.asWanted.Name"));
-		String asWantedTarget = PlayerData.getString("asWanted.target");
 		ArrayList<String> asWantedLore = Message.getList("setPlayerGui.asWanted.Lore", asWantedTarget);
 		asWantedMeta.setLore(asWantedLore);
 		asWantedItem.setItemMeta(asWantedMeta);
+
+		ItemStack info = new ItemStack(Material.SKULL_ITEM);
+		ItemMeta infoMeta = info.getItemMeta();
+		info.setDurability((short) 3);
+	    ((SkullMeta) infoMeta).setOwner(player);
+	    int pointsValueExp = Integer.valueOf(Config.getConfig("extraExp.pointsValue").replace("%", ""));
+		ArrayList<String> infoLore = Message.getList("asWantedGui.info.Lore", wantedPoints, wantedCumulativePoints, wantedHighestPoints, jailCumulativeNumber, asWantedTarget, asWantedCumulativeNumber, asWantedContinuityNumber);
+		if(Config.getConfig("extraExp.enabled").equals("true"))infoLore.add(Message.getMsg("asWantedGui.info.exp", String.valueOf(Integer.valueOf(wantedPoints)*pointsValueExp)));
+		infoMeta.setDisplayName("§4§l" + player);
+		infoMeta.setLore(infoLore);
+		info.setItemMeta(infoMeta);
+		inventory.setItem(4, info);
 		
+        String glassData = String.valueOf(Config.getConfig("asWantedGui.ID.glass"));
+        int glassMaterial = 0;
+        int glassDurability = 0;
+        if(glassData.contains(":")){
+        	glassMaterial = Integer.valueOf(glassData.split(":")[0]);
+        	glassDurability = Integer.valueOf(glassData.split(":")[1]);
+        }else{
+        	glassMaterial = Integer.valueOf(glassData);
+        }
+		Material glassType = Material.getMaterial(glassMaterial);
+		ItemStack glass = new ItemStack(glassType);
+		glass.setDurability((short) glassDurability);
+        if(!glassData.equals("0")){
+    		ItemMeta glassMeta = glass.getItemMeta();
+    		glassMeta.setDisplayName(" ");
+    		glass.setItemMeta(glassMeta);
+        }
+        
+		Material quitType = Material.getMaterial(Integer.valueOf(Config.getConfig("asWantedGui.ID.quit")));
+		ItemStack quit = new ItemStack(quitType);
+		ItemMeta quitMeta = quit.getItemMeta();
+		quitMeta.setDisplayName(Message.getMsg("asWantedGui.quit"));
+		quit.setItemMeta(quitMeta);
 		
-		inventory.setItem(1, wantedItem);
-		inventory.setItem(3, jailItem);
-		inventory.setItem(5, asWantedItem);
+		for(int i=0;i<9;){
+			inventory.setItem(i, glass);
+			i++;
+		}
+		for(int i=18;i<27;){
+			inventory.setItem(i, glass);
+			i++;
+		}
+		
+		inventory.setItem(4, info);
+		inventory.setItem(10, wantedItem);
+		inventory.setItem(12, jailItem);
+		inventory.setItem(14, asWantedItem);
+		inventory.setItem(22, quit);
 		sender.openInventory(inventory);
 	}
 }

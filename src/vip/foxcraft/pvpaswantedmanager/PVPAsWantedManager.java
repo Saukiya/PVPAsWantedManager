@@ -6,13 +6,10 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -28,19 +25,16 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import net.milkbowl.vault.economy.Economy;
 import vip.foxcraft.pvpaswantedmanager.PlayerCommand;
 import vip.foxcraft.pvpaswantedmanager.Util.Placeholders;
 
 public class PVPAsWantedManager extends JavaPlugin implements Listener
 {
-	static File DataFile;
-	private static PVPAsWantedManager instance = null;
 	
 	HashMap<String,BukkitRunnable> RunMap = new HashMap<String,BukkitRunnable>();
 
 	static public YamlConfiguration onLoadData(String name){
-		DataFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "PlayerData" + File.separator + name + ".yml");
+		File DataFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "PlayerData" + File.separator + name + ".yml");
 		if(DataFile.exists()){
 			YamlConfiguration PlayerData = new YamlConfiguration();
 			try {PlayerData.load(DataFile);} catch (FileNotFoundException e) {e.printStackTrace();} catch (IOException e) {e.printStackTrace();} catch (InvalidConfigurationException e) {e.printStackTrace();}
@@ -50,13 +44,8 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 	}
 	
 	static public void onSaveData(String name, YamlConfiguration PlayerData){
-		DataFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "PlayerData" + File.separator + name + ".yml");
+		File DataFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "PlayerData" + File.separator + name + ".yml");
 		try {PlayerData.save(DataFile);} catch (IOException e) {e.printStackTrace();}
-	}
-	
-	public static PVPAsWantedManager getInstance()
-	{
-		return instance;
 	}
 	
 	@SuppressWarnings("deprecation")
@@ -66,7 +55,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 	}
 	
 	static public void onCreateList(String player,String type){
-		DataFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "data.dat");
+		File DataFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "data.dat");
 		YamlConfiguration Data = new YamlConfiguration();
 		try {Data.load(DataFile);} catch (IOException | InvalidConfigurationException e) {e.printStackTrace();}
 		ArrayList<String> List = (ArrayList<String>) Data.getStringList(type);
@@ -76,7 +65,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 	}
 	
 	static public void onDeleteList(String player,String type){
-		DataFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "data.dat");
+		File DataFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "data.dat");
 		YamlConfiguration playerListData = new YamlConfiguration();
 		try {playerListData.load(DataFile);} catch (IOException | InvalidConfigurationException e) {e.printStackTrace();}
 		ArrayList<String> List = (ArrayList<String>) playerListData.getStringList(type);
@@ -97,24 +86,30 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 	}
 	
 	@Override
-	public void onEnable()
-	{
-		instance = this;
+	public void onEnable(){
 		
-		if (!Setup.setup())
-		{
-			disablePlugin("[" + getDescription().getName() + "] Setup Failed");
-		}
 		
         Bukkit.getPluginManager().registerEvents(this, this);
         Bukkit.getPluginManager().registerEvents(new JailManager(), this);
         Bukkit.getPluginManager().registerEvents(new InventoryManager(), this);
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
         	new Placeholders(this).hook();
-        	Bukkit.getConsoleSender().sendMessage("[PVPAsWantedManager] Find PlacholderAPI!");
+        	Bukkit.getConsoleSender().sendMessage("[PVPAsWantedManager] §aFind PlacholderAPI!");
         }
+        
+        if (Bukkit.getPluginManager().isPluginEnabled("Vault")) {
+        	Money.setupEconomy();
+        	Bukkit.getConsoleSender().sendMessage("[PVPAsWantedManager] §aFind Vault!");
+            Config.loadConfig();
+    		Message.loadMessage();
+            Bukkit.getConsoleSender().sendMessage("[PVPAsWantedManager] §a通缉追捕 加载成功! 插件作者: §eSaukiya");
+        }else{
+        	Bukkit.getConsoleSender().sendMessage("[PVPAsWantedManager] §cPlease install Vault!");
+        	Bukkit.getPluginManager().disablePlugin(Bukkit.getPluginManager().getPlugin("PVPAsWantedManager"));
+        }
+        
 		//检测PlayerData文件夹是否存在
-		DataFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "playerdata");
+        File DataFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "playerdata");
 		if(!DataFile.exists()){
 			DataFile.mkdirs();
 		}
@@ -131,9 +126,6 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 			try {Data.save(DataFile);} catch (IOException e) {e.printStackTrace();}
 		}
 		
-        Config.loadConfig();
-		Message.loadMessage();
-        Bukkit.getConsoleSender().sendMessage("§8[§6PVPAsWantedManager§8] §a通缉追捕 加载成功! 插件作者: §eSaukiya");
 	}
 
 	public boolean onCommand(CommandSender sender, Command arg1, String label, String[] args) {
@@ -308,7 +300,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 			player.kickPlayer("Ban");
 			return;
 		}
-		DataFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "PlayerData" + File.separator + player.getName() +".yml");
+		File DataFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "PlayerData" + File.separator + player.getName() +".yml");
 		   if(!DataFile.exists()){
 			   YamlConfiguration PlayerData = new YamlConfiguration();
 			   //玩家PK值(这是主要的数值，重要)
@@ -346,7 +338,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
         BukkitRunnable runnable = new BukkitRunnable(){
 	        int i = 0;
 	        int playerWantedTime = 0;
-	        int targetTime = 0;
+	        int targetTime = 1;
 	        int JailTime = 1;
 	        int wantedPlayerTimeDeduction = Integer.valueOf(Config.getConfig("timeTick.wantedPlayerTimeDeduction").replace("min", ""))*2;
 	        int targetTimeMessage = Integer.valueOf(Config.getConfig("timeTick.targetTimeMessage").replace("min", ""))*2;
@@ -388,6 +380,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 							JailTime++;
 						}
 					}
+					
 					if(!String.valueOf(String.valueOf(TargetName)).equals("N/A")){
 						YamlConfiguration TargetData = onLoadData(TargetName);
 						if(TargetData !=null){
@@ -397,24 +390,25 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 								player.sendMessage(Message.getMsg("player.nullTargetMessage", TargetName));
 							}else{
 								if(targetTime >= targetTimeMessage){
-									if(isPlayerOnline(TargetName) == true){
+									if(isPlayerOnline(TargetName)){
 										Player Target = Bukkit.getPlayer(TargetName);
 										String world = Target.getWorld().getName();
-										String x = String.valueOf(Target.getLocation().getX());
-										String z = String.valueOf(Target.getLocation().getZ());
+										String x = String.valueOf(Target.getLocation().getBlockX());
+										String z = String.valueOf(Target.getLocation().getBlockZ());
 										
-										player.sendMessage(Message.getMsg( "player.onlineTargetMessage", TargetName, String.valueOf(TargetData.getInt(TargetName + ".wanted.points")), x, z,  world));
+										player.sendMessage(Message.getMsg( "player.onlineTargetMessage", TargetName, String.valueOf(TargetData.getInt("wanted.points")), x, z,  world));
 									}else{
 										player.sendMessage(Message.getMsg( "player.offlineTargetMessage", TargetName));
 									}
-									targetTimeMessage = 0;
+									targetTime = 1;
 								}else{
-									targetTimeMessage++;
+									targetTime++;
 								}
 								
 							}
 						}else{
 							PlayerData.set("asWanted.target", String.valueOf("N/A"));
+							onDeleteList(TargetName,"WantedList");
 							player.sendMessage(Message.getMsg("player.nullTargetMessage", TargetName));
 						}
 					}
@@ -507,7 +501,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 					}
 					money = (value+playerWantedPoints*0.25)*taskRewardMoney+TaskRewardBasicMoney;
 					
-					Money.getEcononomy().depositPlayer(Playername, Money) //TODO
+					Money.give(killer.getName(), money);
 					killer.sendMessage(Message.getMsg("player.asWantedArrestMessage",player.getName(),String.valueOf(value)));
 					
 					
@@ -553,13 +547,6 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 	
 	@Override
 	public void onDisable(){
-        Bukkit.getConsoleSender().sendMessage("§8[§6PVPAsWantedManager§8] §a通缉追捕 插件关闭! 插件作者: §eSaukiya");
-	}
-	
-	protected void disablePlugin(String reason)
-	{
-		Logger.getLogger("Minecraft").severe(reason);
-		onDisable();
-        getServer().getPluginManager().disablePlugin(this);
+        Bukkit.getConsoleSender().sendMessage("[PVPAsWantedManager] §a通缉追捕 插件关闭! 插件作者: §eSaukiya");
 	}
 }

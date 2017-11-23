@@ -2,7 +2,7 @@ name: PVPAsWantedManager
 main: vip.foxcraft.pvpaswantedmanager.PVPAsWantedManager
 version: 1.0.0
 author: Saukiya
-softdepend: [PlaceholderAPI]
+softdepend: [PlaceholderAPI,Vault]
 commands:
     PVPAsWantedManager:
        description: This is a permission command.

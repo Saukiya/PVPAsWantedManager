@@ -55,30 +55,28 @@ public class Message {
 		cancellTargetLore.add("&6需要支付: &7对方&6{0}&7PK值*&6{1}&7金币= &c{2}&7金币");
 		messages.set("asWantedGui.cancellTarget.lore", cancellTargetLore);
 		
-		messages.set("setPlayerGui.guiName", String.valueOf("&9&l玩家点数管理"));
-		messages.set("setPlayerGui.wanted.Name", String.valueOf("&c&lPK点数"));
+		messages.set("setPlayerGui.guiName", String.valueOf("&9&l玩家点数管理 &4&l{0}"));
+		messages.set("setPlayerGui.wanted.Name", String.valueOf("&a&lPK点数"));
 		ArrayList<String> wantedLore = new ArrayList<String>();
-		wantedLore.add("&3PK值: &7{0}");
-		wantedLore.add("&3左键&e-1 &3右键&e+1");
-		wantedLore.add("&3Shift+左键 &c清零");
+		wantedLore.add("&6PK值: &c{0}");
+		wantedLore.add("&3点击编辑");
 		messages.set("setPlayerGui.wanted.Lore", wantedLore);
-		messages.set("setPlayerGui.jail.Name", String.valueOf("&c&l监狱点数"));
+		messages.set("setPlayerGui.jail.Name", String.valueOf("&a&l监狱时间"));
 		ArrayList<String> jailLore = new ArrayList<String>();
-		jailLore.add("&3监狱值: &7{0}");
-		jailLore.add("&3左键&e-1 &3右键&e+1");
-		jailLore.add("&3Shift+左键 &c清零");
+		jailLore.add("&6剩余时间: &c{0}&7分钟");
+		jailLore.add("&3点击编辑");
 		messages.set("setPlayerGui.jail.Lore", jailLore);
-		messages.set("setPlayerGui.asWanted.Name", String.valueOf("&c&l通缉目标"));
+		messages.set("setPlayerGui.asWanted.Name", String.valueOf("&a&l通缉目标"));
 		ArrayList<String> asWantedLore = new ArrayList<String>();
-		asWantedLore.add("&3目标: &7{0}");
-		asWantedLore.add("&3左键 &c清空");
+		asWantedLore.add("&6目标: &c{0}");
+		asWantedLore.add("&3点击&4清空");
 		messages.set("setPlayerGui.asWanted.Lore", asWantedLore);
 		messages.set("player.newWantedMessage", String.valueOf("&8[&4击杀&8] &7你击杀了 &6{0}&7! PK值达到 &e{1}&7!"));
 		messages.set("player.deathMessage", String.valueOf("&8[&4死亡&8] &7你因为PK值导致额外扣取 &c{0}&7 经验等级"));
 		messages.set("player.expMessage", String.valueOf("&8[&6经验&8] &7你因为PK值获得额外 &e{0}&7 经验 &7[{1}->{2}]"));
 		messages.set("player.noTargetMeMessage", String.valueOf("&8[&c通缉&8] &7你不能通缉你自己!"));
 		messages.set("player.nullTargetMessage", String.valueOf("&8[&c通缉&8] &7你的通缉任务失败!连续通缉次数归零! &7（&c原因&7:目标PK值已消除 或被他人抓获）"));
-		messages.set("player.onlineTargetMessage", String.valueOf("&8[&c通缉&8] &7你的通缉目标 &c{0}&7 当前PK值为: {1} ，平面坐标（{2}，{3}），所在世界 {4}"));
+		messages.set("player.onlineTargetMessage", String.valueOf("&8[&c通缉&8] &7你的通缉目标 &c{0}&7 当前PK值为: {1} ，平面坐标（&6{2}&7，&6{3}&7），所在世界: &6{4}"));
 		messages.set("player.offlineTargetMessage", String.valueOf("&8[&c通缉&8] &7你的通缉目标当前不在线!"));
 		messages.set("player.cancellTargetMessage", String.valueOf("&8[&c通缉&8] &7你已经放弃了本次任务! 支付 &6{0}&7金币，剩余 &c{1}&7金币"));
 		messages.set("player.returnZeroWantedPointMessage", String.valueOf("&8[&c通缉&8] &7你的PK值已消除！"));
@@ -94,8 +92,17 @@ public class Message {
 		messages.set("admin.joinJailCorrectionsMessage", String.valueOf("&8[&c通缉&8] &7请输入/pawm joinjail <玩家名>!"));
 		messages.set("admin.quitjailCorrectionsMessage", String.valueOf("&8[&c通缉&8] &7请输入/pawm quitjail <玩家名>!"));
 		messages.set("admin.setPointsCorrectionsMessage", String.valueOf("&8[&c通缉&8] &7请输入/pawm set <玩家名>!"));	
+		messages.set("admin.playerNullMessage", String.valueOf("&8[&c通缉&8] &c玩家不存在!"));
 		messages.set("admin.playerOfflineMessage", String.valueOf("&8[&c通缉&8] &7玩家必须是在线状态!"));
+		messages.set("admin.waitForInputMessage", String.valueOf("&8[&c通缉&8] &a&o请输入你要修改的数值&7&o:"));
+		messages.set("admin.wrongFormatMessage", String.valueOf("&8[&c通缉&8] &c格式错误!"));
+		messages.set("admin.EditPlayerDataMessage", String.valueOf("&8[&c通缉&8] &a&o修改成功!"));
 		messages.set("admin.reloadMessage", String.valueOf("&8[&c通缉&8] &7插件重载成功!"));	
+		ArrayList<String> replaceList = new ArrayList<String>();
+		replaceList.add("world:&2生存世界");
+		replaceList.add("world_nether:&c地狱");
+		replaceList.add("world_the_end:&3末地");
+		messages.set("replace", replaceList);
 		try {messages.save(messageFile);} catch (IOException e) {e.printStackTrace();}
 	}
 	
@@ -120,13 +127,20 @@ public class Message {
 	public static String getMsg(String loc,String... args){
 		String raw = messages.getString(loc);
 		if (raw == null || raw.isEmpty()) {
-			return "缺少Message: " + loc;
+			return "Null Message: " + loc;
 		}
 		raw = raw.replaceAll("&", "§");
 		if (args == null) {
 			return raw;
 		}
+		ArrayList<String> replaceList = Message.getList("replace");
 		for (int i = 0; i < args.length; i++) {
+			for(int l=0; l <replaceList.size();l++){
+				String str = replaceList.get(l);
+				String str1 = str.split(":")[0];
+				String str2 = str.split(":")[1].replace("&", "§");
+				if(args[i].equals(str1))args[i] = args[i].replace(str1, str2);
+			}
 			raw = raw.replace("{" + i + "}", args[i]==null ? "null" : args[i]);
 		}
 		

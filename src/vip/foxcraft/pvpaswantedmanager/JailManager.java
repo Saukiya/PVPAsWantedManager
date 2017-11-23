@@ -1,6 +1,5 @@
 package vip.foxcraft.pvpaswantedmanager;
 
-import java.io.File;
 import java.util.ArrayList;
 
 import org.bukkit.Bukkit;
