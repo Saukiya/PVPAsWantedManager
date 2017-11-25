@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -169,6 +170,7 @@ public class InventoryManager implements Listener {
 				PlayerData.set("wanted.points", value);
 				PVPAsWantedManager.onSaveData(player, PlayerData);
 				admin.sendMessage(Message.getMsg("admin.EditPlayerDataMessage"));
+				openSetPlayerGui(admin, player);
 			}else{
 				admin.sendMessage(Message.getMsg("admin.wrongFormatMessage"));
 			}
@@ -181,13 +183,31 @@ public class InventoryManager implements Listener {
 				int value = Integer.valueOf(message);
 				YamlConfiguration PlayerData = PVPAsWantedManager.onLoadData(player);
 				if(PlayerData.getInt("jail.times")==0&& value > 0){
-					PVPAsWantedManager.onCreateList(player, "JailedList");
+					if(PVPAsWantedManager.isPlayerOnline(player)){
+						Player p = Bukkit.getPlayer(player);
+						Location location = Bukkit.getPlayer(player).getLocation();
+						PVPAsWantedManager.onCreateList(player, "JailedList");
+						JailManager.playerJoinJail(p, location);
+					}else{
+						admin.sendMessage(Message.getMsg("admin.playerOfflineMessage"));
+						event.setCancelled(true);
+						return;
+					}
 				}else if(PlayerData.getInt("jail.times")>0 && value ==0){
-					PVPAsWantedManager.onDeleteList(player, "JailedList");
+					if(PVPAsWantedManager.isPlayerOnline(player)){
+						Player p = Bukkit.getPlayer(player);
+						PVPAsWantedManager.onDeleteList(player, "JailedList");
+						JailManager.playerQuitJail(p);;
+					}else{
+						admin.sendMessage(Message.getMsg("admin.playerOfflineMessage"));
+						event.setCancelled(true);
+						return;
+					}
 				}
 				PlayerData.set("jail.times", value);
 				PVPAsWantedManager.onSaveData(player, PlayerData);
 				admin.sendMessage(Message.getMsg("admin.EditPlayerDataMessage"));
+				openSetPlayerGui(admin, player);
 			}else{
 				admin.sendMessage(Message.getMsg("admin.wrongFormatMessage"));
 			}
@@ -475,7 +495,7 @@ public class InventoryManager implements Listener {
 		ItemStack jailItem = new ItemStack(Material.IRON_FENCE);
 		ItemMeta jailMeta = jailItem.getItemMeta();
 		jailMeta.setDisplayName(Message.getMsg("setPlayerGui.jail.Name"));
-		int jailPoint = PlayerData.getInt("jail.points");
+		int jailPoint = PlayerData.getInt("jail.times");
 		ArrayList<String> jailLore = Message.getList("setPlayerGui.jail.Lore", String.valueOf(jailPoint));
 		jailMeta.setLore(jailLore);
 		jailItem.setItemMeta(jailMeta);

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.regex.Pattern;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -30,7 +31,6 @@ import vip.foxcraft.pvpaswantedmanager.Util.Placeholders;
 
 public class PVPAsWantedManager extends JavaPlugin implements Listener
 {
-	
 	HashMap<String,BukkitRunnable> RunMap = new HashMap<String,BukkitRunnable>();
 
 	static public YamlConfiguration onLoadData(String name){
@@ -70,7 +70,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 		try {playerListData.load(DataFile);} catch (IOException | InvalidConfigurationException e) {e.printStackTrace();}
 		ArrayList<String> List = (ArrayList<String>) playerListData.getStringList(type);
 		for(int i = 0; i < List.size();i++){
-			if(List.get(i).equals(player)){
+			if(List.get(i).toLowerCase().equals(player.toLowerCase())){
 				List.remove(i);
 				playerListData.set(type, List);
 				try {playerListData.save(DataFile);} catch (IOException e) {e.printStackTrace();}
@@ -128,31 +128,34 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 		
 	}
 
+	//TODO 让控制台能输入指令
 	public boolean onCommand(CommandSender sender, Command arg1, String label, String[] args) {
         if(label.equalsIgnoreCase("pawm") || label.equalsIgnoreCase("pvpaswantedmanager")){
                 //判断是否是玩家
-                if(!(sender instanceof Player)){
-                        sender.sendMessage("只能在游戏里执行此命令！");
-                        return true;
-                }
-                //判断是否有权限
-                if(!sender.hasPermission("pvpaswantedmanager.use")){
+                if((sender instanceof Player)){
+                    if(!sender.hasPermission("pvpaswantedmanager.use")){
                         sender.sendMessage(Message.getMsg("player.noPermissionMessage"));
                         return true;
+                    }
                 }
+                //判断是否有权限
                 //强转对象
-                Player p=(Player) sender;
                 //
                 //无参数
                 if(args.length==0){
-                        p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6==========[&b PVPAsWantedManager&6 ]=========="));
+                	sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6==========[&b PVPAsWantedManager&6 ]=========="));
                         for(java.lang.reflect.Method method : this.getClass().getDeclaredMethods()){
                                 if(!method.isAnnotationPresent(PlayerCommand.class)){
                                         continue;
                                 }
                                 PlayerCommand sub=method.getAnnotation(PlayerCommand.class);
-                                if(p.hasPermission("pvpaswantedmanager." + sub.cmd())){
-                                    p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7/pawm "+sub.cmd()+" &6"+sub.arg()+"&7-:&3 "+sub.des()));
+                                if(sender.hasPermission("pvpaswantedmanager." + sub.cmd())){
+                                	if(!(sender instanceof Player)){
+                                		if(sub.cmd().equals("open")||sub.cmd().equals("set")){
+                                            continue;
+                                		}
+                                	}
+                                	sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7/pawm "+sub.cmd()+"&6"+sub.arg()+"&7-:&3 "+Message.getMsg("command."+ sub.cmd())));
                                 }
                         }
                         return true;
@@ -167,7 +170,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
                         }
                         
                         try {
-                                method.invoke(this, p,args);        
+                                method.invoke(this, sender,args);
                         } catch (IllegalAccessException e) {
                                 e.printStackTrace();
                         } catch (IllegalArgumentException e) {
@@ -177,43 +180,55 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
                         }
                         return true;
                 }
-                p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a未找到此子命令:&c"+args[0]));
-                return true;
+                sender.sendMessage(Message.getMsg("command.NoCommand", args[0]));
+            return true;
         }
         return false;
 }
 
 	//sender instanceof Player
-	@PlayerCommand(cmd="open",des ="打开通缉菜单")
+	@PlayerCommand(cmd="open")
 	public void onOpenGUI(CommandSender sender,String args[]){
-		if(!sender.hasPermission("pvpaswantedmanager." + args[0])) {
-			sender.sendMessage(Message.getMsg("player.noPermissionMessage"));
-			return;
-		}
 		if(sender instanceof Player){
 			Player player = (Player)sender;
+			if(!player.hasPermission("pvpaswantedmanager." + args[0])) {
+				player.sendMessage(Message.getMsg("player.noPermissionMessage"));
+				return;
+			}
 			InventoryManager.openAsWantedGUI(player, 1);
 		}else{
-			sender.sendMessage("控制台不允许执行此指令");
+			sender.sendMessage(Message.getMsg("admin.ConsoleNotMessage"));
 		}
 	}
 	
 
-	@PlayerCommand(cmd="joinjail",arg = "<player>",des ="使玩家入狱")
-	public void onJoinJail(Player sender,String args[]){
-		if(!sender.hasPermission("pvpaswantedmanager." + args[0])) {
-			sender.sendMessage(Message.getMsg("player.noPermissionMessage"));
-			return;
+	@PlayerCommand(cmd="joinjail",arg = " <player> <times>")
+	public void onJoinJail(CommandSender sender,String args[]){
+		if(sender instanceof Player){
+			if(!sender.hasPermission("pvpaswantedmanager." + args[0])) {
+				sender.sendMessage(Message.getMsg("player.noPermissionMessage"));
+				return;
+			}
 		}
-		if(String.valueOf(args.length).equals("1")){
+		if(args.length <=2 ){
 			sender.sendMessage(Message.getMsg("admin.joinJailCorrectionsMessage"));
 			return;
 		}
 		String playerName = args[1];
+		if(!Pattern.compile("[0-9]*").matcher(args[2]).matches()){
+			sender.sendMessage(Message.getMsg("admin.wrongFormatMessage"));
+			return;
+		}
+		int times = Integer.valueOf(args[2]);
 		if(isPlayerOnline(playerName)){
 			Player player = Bukkit.getPlayer(playerName);
-			Location location = player.getLocation();
 	        YamlConfiguration PlayerData = PVPAsWantedManager.onLoadData(player.getName());
+	        int value = PlayerData.getInt("jail.times");
+			if(value > 0){
+				sender.sendMessage(Message.getMsg("admin.playerIsAlreadyInJailMessage"));
+				return;
+			}
+			Location location = player.getLocation();
 	        int playerX = location.getBlockX();
 	        int playerY = location.getBlockY();
 	        int playerZ = location.getBlockZ();
@@ -222,84 +237,97 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 	        PlayerData.set("attribute.Y", playerY);
 	        PlayerData.set("attribute.Z", playerZ);
 	        PlayerData.set("attribute.World", playerWorld);
+	        PlayerData.set("jail.times", times);
 	        PVPAsWantedManager.onSaveData(player.getName(), PlayerData);
 			JailManager.playerJoinJail(player,location);
+			sender.sendMessage(Message.getMsg("admin.joinJailPlayerMessage", args[1],args[2]));
+			player.sendMessage(Message.getMsg("player.jailedJoinMessage",args[2]));
 		}else{
-			sender.sendMessage("玩家必须是在线状态!");
+			sender.sendMessage(Message.getMsg("admin.playerOfflineMessage"));
 		}
 	}
 	
 
-	@PlayerCommand(cmd="quitjail",des ="使玩家出狱")
-	public void onQuitJail(Player sender,String args[]){
-		if(!sender.hasPermission("pvpaswantedmanager." + args[0])) {
-			sender.sendMessage(Message.getMsg("player.noPermissionMessage"));
-			return;
+	@PlayerCommand(cmd="quitjail",arg = " <player>")
+	public void onQuitJail(CommandSender sender,String args[]){
+		if(sender instanceof Player){
+			if(!sender.hasPermission("pvpaswantedmanager." + args[0])) {
+				sender.sendMessage(Message.getMsg("player.noPermissionMessage"));
+				return;
+			}
 		}
-		if(String.valueOf(args.length).equals("1")){
-			sender.sendMessage(Message.getMsg("admin.quitjailCorrectionsMessage"));
+		if(args.length <=1){
+			sender.sendMessage(Message.getMsg("admin.quitJailCorrectionsMessage"));
 			return;
 		}
 		String playerName = args[1];
 		if(isPlayerOnline(playerName)){
 			Player player = Bukkit.getPlayer(playerName);
+			YamlConfiguration PlayerData = onLoadData(player.getName());
+			int value = PlayerData.getInt("jail.times");
+			if(value == 0){
+				sender.sendMessage(Message.getMsg("admin.playerIsNotInJailMessage"));
+				return;
+			}
+			PlayerData.set("jail.times", Integer.valueOf(0));
+	        PVPAsWantedManager.onSaveData(player.getName(), PlayerData);
 			JailManager.playerQuitJail(player);
+			sender.sendMessage(Message.getMsg("admin.quitJailPlayerMessage", args[1]));
+			player.sendMessage(Message.getMsg("player.jailedCancelMessage"));
 		}else{
 			sender.sendMessage(Message.getMsg("admin.playerOfflineMessage"));
 		}
 	}
 
-	@PlayerCommand(cmd="setjail",des ="设置监狱位置")
-	public void onSetJail(Player sender,String args[]){
-		if(!sender.hasPermission("pvpaswantedmanager." + args[0])) {
-			sender.sendMessage(Message.getMsg("player.noPermissionMessage"));
-			return;
+	@PlayerCommand(cmd="setjail")
+	public void onSetJail(CommandSender sender,String args[]){
+		if(sender instanceof Player){
+			if(!sender.hasPermission("pvpaswantedmanager." + args[0])) {
+				sender.sendMessage(Message.getMsg("player.noPermissionMessage"));
+				return;
+			}
+			Player player = (Player)sender;
+			JailManager.playerSetJail(player);
+		}else{
+			sender.sendMessage(Message.getMsg("admin.ConsoleNotMessage"));
 		}
-		JailManager.playerSetJail(sender);
 	}
 
-	@PlayerCommand(cmd="reload",des ="重载插件配置")
-	public void onReloadPlugin(Player sender,String args[]){
-		if(!sender.hasPermission("pvpaswantedmanager." + args[0])) {
-			sender.sendMessage(Message.getMsg("player.noPermissionMessage"));
-			return;
+	@PlayerCommand(cmd="reload")
+	public void onReloadPlugin(CommandSender sender,String args[]){
+		if(sender instanceof Player){
+			if(!sender.hasPermission("pvpaswantedmanager." + args[0])) {
+				sender.sendMessage(Message.getMsg("player.noPermissionMessage"));
+				return;
+			}
 		}
         Config.loadConfig();
 		Message.loadMessage();
 		sender.sendMessage(Message.getMsg("admin.reloadMessage"));
 	}
 
-	@PlayerCommand(cmd="set",des ="<player> 更改玩家的点数")
-	public void onSetPoint(Player sender,String args[]){
-		if(!sender.hasPermission("pvpaswantedmanager." + args[0])) {
-			sender.sendMessage(Message.getMsg("player.noPermissionMessage"));
-			return;
+	@PlayerCommand(cmd="set",arg = " <player>")
+	public void onSetPoint(CommandSender sender,String args[]){
+		if(sender instanceof Player){
+			if(!sender.hasPermission("pvpaswantedmanager." + args[0])) {
+				sender.sendMessage(Message.getMsg("player.noPermissionMessage"));
+				return;
+			}
+			if(args.length <= 1){
+				sender.sendMessage(Message.getMsg("admin.setPointsCorrectionsMessage"));
+				return;
+			}
+			Player player = (Player) sender;
+			String playerName = args[1];
+			InventoryManager.openSetPlayerGui(player, playerName);
+		}else{
+			sender.sendMessage(Message.getMsg("admin.ConsoleNotMessage"));
 		}
-
-		if(String.valueOf(args.length).equals("1")){
-			sender.sendMessage(Message.getMsg("admin.setPointsCorrectionsMessage"));
-			return;
-		}
-		String playerName = args[1];
-		InventoryManager.openSetPlayerGui(sender, playerName);
-	}
-
-	@PlayerCommand(cmd="bal",des ="测试-查看自己的金钱")
-	public void bal(Player sender,String args[]){
-		if(!sender.hasPermission("pvpaswantedmanager." + args[0])) {
-			sender.sendMessage(Message.getMsg("player.noPermissionMessage"));
-			return;
-		}
-			sender.sendMessage("");
 	}
 
 	@EventHandler
 	public void onJoinPlayer(PlayerJoinEvent event){
 		Player player = event.getPlayer();
-		if(player.getName().equals("false")){
-			player.kickPlayer("Ban");
-			return;
-		}
 		File DataFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "PlayerData" + File.separator + player.getName() +".yml");
 		   if(!DataFile.exists()){
 			   YamlConfiguration PlayerData = new YamlConfiguration();
@@ -322,7 +350,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 			   //记录玩家等级，不解释
 			   PlayerData.set("attribute.level", Integer.valueOf(0));
 			   PlayerData.set("attribute.X", Integer.valueOf(0));
-			   PlayerData.set("attribute.Y", Integer.valueOf(0));
+			   PlayerData.set("attribute.Y", Integer.valueOf(100));
 			   PlayerData.set("attribute.Z", Integer.valueOf(0));
 			   PlayerData.set("attribute.World", String.valueOf("world"));
 			   onSaveData(player.getName(), PlayerData);
@@ -387,6 +415,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 							if(TargetData.getInt("wanted.points") == 0){
 								PlayerData.set("asWanted.target", String.valueOf("N/A"));
 								PlayerData.set("asWanted.continuitynumber", Integer.valueOf(0));
+								onDeleteList(TargetName,"WantedList");
 								player.sendMessage(Message.getMsg("player.nullTargetMessage", TargetName));
 							}else{
 								if(targetTime >= targetTimeMessage){

@@ -21,7 +21,6 @@ public class Config {
 		config.set("CancellAsWantedTarget.money", Integer.valueOf(100));
 		config.set("TaskReward.basicMoney", Integer.valueOf(500));
 		config.set("TaskReward.money", Integer.valueOf(200));
-		config.set("TaskReward.exp", Integer.valueOf(1));
 		config.set("asWantedGui.ID.glass", String.valueOf("160:15"));
 		config.set("asWantedGui.ID.pageDown", Integer.valueOf("262"));
 		config.set("asWantedGui.ID.pageUp", Integer.valueOf("262"));
@@ -34,7 +33,7 @@ public class Config {
 		config.set("extraExp.enabled", Boolean.valueOf(false));
 		config.set("extraExp.message", Boolean.valueOf(true));
 		config.set("extraExp.pointsValue", String.valueOf("10%"));
-		config.set("jail.eventManager.attack.enabled",Boolean.valueOf(true));
+		config.set("jail.eventManager.damage.enabled",Boolean.valueOf(true));
 		config.set("jail.eventManager.blockPlace.enabled",Boolean.valueOf(true));
 		config.set("jail.eventManager.blockBreak.enabled",Boolean.valueOf(true));
 		config.set("jail.eventManager.bucket.enabled",Boolean.valueOf(true));
@@ -45,7 +44,6 @@ public class Config {
 		config.set("jail.eventManager.joinServer.enabled",Boolean.valueOf(true));
 		config.set("jail.eventManager.pickupItem.enabled",Boolean.valueOf(true));
 		config.set("jail.eventManager.portal.enabled",Boolean.valueOf(true));
-		config.set("jail.eventManager.underAttack.enabled",Boolean.valueOf(true));
 		ArrayList<String> listCmd = new ArrayList<String>();
 		listCmd.add("pawm");
 		listCmd.add("bal");

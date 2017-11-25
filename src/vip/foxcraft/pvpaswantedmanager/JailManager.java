@@ -6,7 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -181,16 +181,27 @@ public class JailManager implements Listener {
 	}
 	@EventHandler
 	public void PlayerDamageByEntityEvent(EntityDamageByEntityEvent event){
-		if(event.getEntityType().equals(EntityType.PLAYER)){
-			if(Config.getConfig("jail.eventManager.underAttack.enabled").equals("false"))return;
+		if(event.getDamager() instanceof Arrow){
+			if(Config.getConfig("jail.eventManager.damage.enabled").equals("false"))return;
+			Arrow arrow = (Arrow) event.getDamager();
+			if(arrow.getShooter() instanceof Player){
+				Player player = (Player) arrow.getShooter();
+				if(isJailPlayer(player))event.setCancelled(true);
+			}
+		}
+		if(event.getEntity() instanceof Player){
+			if(Config.getConfig("jail.eventManager.damage.enabled").equals("false"))return;
 			Player player = (Player) event.getEntity();
 			if(isJailPlayer(player))event.setCancelled(true);
-		}else if(event.getDamager().getType().equals(EntityType.PLAYER)){
-			if(Config.getConfig("jail.eventManager.attack.enabled").equals("false"))return;
+			
+		}
+		if(event.getDamager() instanceof Player){
+			if(Config.getConfig("jail.eventManager.damage.enabled").equals("false"))return;
 			Player player = (Player) event.getDamager();
 			if(isJailPlayer(player))event.setCancelled(true);
 		}
 	}
+	
 	@EventHandler
 	public void BlockPlaceEvent(BlockPlaceEvent event){
 		if(Config.getConfig("jail.eventManager.blockPlace.enabled").equals("false"))return;

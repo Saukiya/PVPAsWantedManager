@@ -10,5 +10,4 @@ import java.lang.annotation.Target;
 public @interface PlayerCommand {
 	String cmd();
 	String arg() default "";
-	String des() default "这个家伙很懒没有写介绍";
 }
