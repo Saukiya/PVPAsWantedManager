@@ -34,6 +34,9 @@ permissions:
   pvpaswantedmanager.joinjail:
     description: PAWM JOINJAIL
     default: op
+  pvpaswantedmanager.quitjail:
+    description: PAWM QUITJAIL
+    default: op
   pvpaswantedmanager.reload:
     description: PAWM RELOAD
     default: op

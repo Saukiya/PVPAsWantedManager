@@ -27,6 +27,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
+import me.clip.placeholderapi.PlaceholderAPI;
+
 
 public class InventoryManager implements Listener {
 	static HashMap<Player,String> PKMap = new HashMap<Player,String>();
@@ -284,6 +286,7 @@ public class InventoryManager implements Listener {
 	        String online = Message.getMsg("asWantedGui.wantedSkull.Online");
 	        for (Map.Entry<String, Integer> OnlineList : Onlinelist) {
 	            name = OnlineList.getKey();
+	            Player p = Bukkit.getPlayer(name);
 	            wantedpoints = OnlineList.getValue();
 	            level = LevelMap.get(name);
 	            itemStack = new ItemStack(Material.SKULL_ITEM);
@@ -303,7 +306,8 @@ public class InventoryManager implements Listener {
 				itemStack.setDurability((short) 3);
 			    ((SkullMeta) itemMeta).setOwner(name);
 			    loreList = Message.getList("asWantedGui.wantedSkull.Lore", String.valueOf(wantedpoints), String.valueOf(level), online,String.valueOf(Money),PKPoints);
-				itemMeta.setDisplayName(Message.getMsg("asWantedGui.wantedSkull.Name", name));
+				loreList = (ArrayList<String>) PlaceholderAPI.setPlaceholders(p, loreList);
+			    itemMeta.setDisplayName(Message.getMsg("asWantedGui.wantedSkull.Name", name));
 				itemMeta.setLore(loreList);
 				itemStack.setItemMeta(itemMeta);
 				inventory.setItem(skullNumber, itemStack);
@@ -333,7 +337,22 @@ public class InventoryManager implements Listener {
 				itemStack.setDurability((short) 3);
 			    ((SkullMeta) itemMeta).setOwner(name);
 			    loreList = Message.getList("asWantedGui.wantedSkull.Lore", String.valueOf(wantedpoints), String.valueOf(level), offline,String.valueOf(Money),PKPoints);
-				itemMeta.setDisplayName(Message.getMsg("asWantedGui.wantedSkull.Name", name));
+			    for(int l=0;l<loreList.size();){
+			    	String string = loreList.get(l);
+					int v = Integer.valueOf(string.split("%").length/2);
+					for(int i=0;i<=v;i++){
+						if(string.split("%").length >=2){
+							String str = string.split("%")[1];
+							str = string.replace(str, "");
+							if(str.contains("%%")){
+								string = str.replace("%%", "§7-");
+							}
+						}
+					}
+					loreList.set(l, string);
+			    	l++;
+			    }
+			    itemMeta.setDisplayName(Message.getMsg("asWantedGui.wantedSkull.Name", name));
 				itemMeta.setLore(loreList);
 				itemStack.setItemMeta(itemMeta);
 				inventory.setItem(skullNumber, itemStack);
