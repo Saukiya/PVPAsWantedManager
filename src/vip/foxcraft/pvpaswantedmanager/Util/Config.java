@@ -1,4 +1,4 @@
-package vip.foxcraft.pvpaswantedmanager;
+package vip.foxcraft.pvpaswantedmanager.Util;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,7 +16,8 @@ public class Config {
         Bukkit.getConsoleSender().sendMessage("§8[§6PVPAsWantedManager§8] §cCreate Config.yml");
 		config = new YamlConfiguration();//
 		config.set("language", String.valueOf("CN"));
-		//TODO false TaskRewardGoldCoin
+		//TODO false TaskRewardGoldCoin asWantedArrest
+		config.set("asWantedArrest", Boolean.valueOf(true));
 		config.set("CancellAsWantedTarget.enabled", Boolean.valueOf(true));
 		config.set("CancellAsWantedTarget.money", Integer.valueOf(100));
 		config.set("TaskReward.basicMoney", Integer.valueOf(500));
@@ -25,11 +26,14 @@ public class Config {
 		config.set("asWantedGui.ID.pageDown", Integer.valueOf("262"));
 		config.set("asWantedGui.ID.pageUp", Integer.valueOf("262"));
 		config.set("asWantedGui.ID.jailInfo", Integer.valueOf("347"));
+		config.set("asWantedGui.ID.pvpProtect", Integer.valueOf("299"));
 		config.set("asWantedGui.ID.quit", Integer.valueOf("166"));
 		config.set("asWantedGui.ID.cancellTarget", Integer.valueOf("352"));
 		config.set("timeTick.wantedPlayerTimeDeduction", String.valueOf("30min"));
 		config.set("timeTick.jailPlayerTimeDeduction", String.valueOf("20min"));
-		config.set("timeTick.targetTimeMessage", String.valueOf("15min"));
+		config.set("timeTick.targetTimeMessage", String.valueOf("1min"));
+		config.set("playerNoviceProtection.enabled", Boolean.valueOf(true));
+		config.set("playerNoviceProtection.times", String.valueOf("300min"));
 		config.set("extraExp.enabled", Boolean.valueOf(false));
 		config.set("extraExp.message", Boolean.valueOf(true));
 		config.set("extraExp.pointsValue", String.valueOf("10%"));
@@ -48,7 +52,9 @@ public class Config {
 		listCmd.add("pawm");
 		listCmd.add("bal");
 		listCmd.add("list");
+		listCmd.add("t");
 		listCmd.add("tell");
+		listCmd.add("msg");
 		config.set("jail.eventManager.command.whiteList", listCmd);
 		config.set("jail.location.X", Integer.valueOf(0));
 		config.set("jail.location.Y", Integer.valueOf(80));

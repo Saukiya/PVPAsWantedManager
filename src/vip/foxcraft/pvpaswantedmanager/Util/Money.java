@@ -1,4 +1,4 @@
-package vip.foxcraft.pvpaswantedmanager;
+package vip.foxcraft.pvpaswantedmanager.Util;
 
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;

@@ -16,6 +16,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -28,11 +29,15 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import me.clip.placeholderapi.PlaceholderAPI;
+import vip.foxcraft.pvpaswantedmanager.Util.Config;
+import vip.foxcraft.pvpaswantedmanager.Util.Message;
+import vip.foxcraft.pvpaswantedmanager.Util.Money;
 
 
 public class InventoryManager implements Listener {
 	static HashMap<Player,String> PKMap = new HashMap<Player,String>();
 	static HashMap<Player,String> JailMap = new HashMap<Player,String>();
+	static ArrayList<String> PVPList = new ArrayList<String>();
 	
 	@SuppressWarnings("deprecation")
 	@EventHandler
@@ -44,6 +49,11 @@ public class InventoryManager implements Listener {
 			Player player = (Player) event.getView().getPlayer();
 			if(item != null){
 				if(event.getRawSlot() <= 53){
+					Material pageDownType = Material.getMaterial(Integer.valueOf(Config.getConfig("asWantedGui.ID.pageDown")));
+					Material pageUpType = Material.getMaterial(Integer.valueOf(Config.getConfig("asWantedGui.ID.pageUp")));
+					Material pvpProtectType = Material.getMaterial(Integer.valueOf(Config.getConfig("asWantedGui.ID.pvpProtect")));
+					Material quitType = Material.getMaterial(Integer.valueOf(Config.getConfig("asWantedGui.ID.quit")));
+					Material targetType = Material.getMaterial(Integer.valueOf(Config.getConfig("asWantedGui.ID.cancellTarget")));
 					if(item.getType().equals(Material.SKULL_ITEM)){
 						if(item.getDurability() == 3){
 							YamlConfiguration Data = PVPAsWantedManager.onLoadData(player.getName());
@@ -70,19 +80,22 @@ public class InventoryManager implements Listener {
 								event.setCancelled(true);
 							}
 						}
-					}
-					Material pageDownType = Material.getMaterial(Integer.valueOf(Config.getConfig("asWantedGui.ID.pageDown")));
-					Material pageUpType = Material.getMaterial(Integer.valueOf(Config.getConfig("asWantedGui.ID.pageUp")));
-					Material quitType = Material.getMaterial(Integer.valueOf(Config.getConfig("asWantedGui.ID.quit")));
-					Material targetType = Material.getMaterial(Integer.valueOf(Config.getConfig("asWantedGui.ID.cancellTarget")));
-					if(item.getType().equals(pageDownType) || item.getType().equals(pageUpType)){
+					}else if(item.getType().equals(pageDownType) || item.getType().equals(pageUpType)){
 						InventoryManager.openAsWantedGUI(player, item.getAmount());
 						return;
-					}
-					if(item.getType().equals(quitType)){
+					}else if(item.getType().equals(quitType)){
 						player.closeInventory();
-					}
-					if(item.getType().equals(targetType)){
+					}else if(item.getType().equals(pvpProtectType)){
+						if(PVPList.contains(player.getName())){
+							PVPList.remove(player.getName());
+							player.sendMessage(Message.getMsg("player.pvpOnMessage"));
+							player.closeInventory();
+						}else{
+							PVPList.add(player.getName());
+							player.sendMessage(Message.getMsg("player.pvpOffMessage"));
+							player.closeInventory();
+						}
+					}else if(item.getType().equals(targetType)){
 						YamlConfiguration Data = PVPAsWantedManager.onLoadData(player.getName());
 						String target = Data.getString("asWanted.target");
 						if(!target.equals("N/A")){
@@ -345,7 +358,7 @@ public class InventoryManager implements Listener {
 							String str = string.split("%")[1];
 							str = string.replace(str, "");
 							if(str.contains("%%")){
-								string = str.replace("%%", "§7-");
+								string = str.replace("%%", Message.getMsg("asWantedGui.wantedSkull.Placeholder"));
 							}
 						}
 					}
@@ -423,7 +436,9 @@ public class InventoryManager implements Listener {
 		String wantedHighestPoints = PlayerData.getString("wanted.highestPoints");
 		String jailCumulativeNumber = PlayerData.getString("jail.cumulativeNumber");
 		int jailTimes = Integer.valueOf(PlayerData.getString("jail.times"));
-		int jailCalculationTime = Integer.valueOf(Config.getConfig("timeTick.jailPlayerTimeDeduction").replace("min", ""));
+		int playerOnlineTimes = Integer.valueOf(PlayerData.getString("cumulativeOnlineTime"));
+		int playerProtectionTimes = Integer.valueOf(Config.getConfig("playerNoviceProtection.times").replace("min", "").replace("m",""));
+		int wantedCalculationTime = Integer.valueOf(Config.getConfig("timeTick.wantedPlayerTimeDeduction").replace("min", "").replace("m",""));
 		int cancelltargetbalance = Integer.valueOf(Config.getConfig("CancellAsWantedTarget.money"));
 		String asWantedTarget = PlayerData.getString("asWanted.target");
 		String asWantedCumulativeNumber = PlayerData.getString("asWanted.cumulativenumber");
@@ -439,19 +454,41 @@ public class InventoryManager implements Listener {
 		infoMeta.setLore(infoLore);
 		info.setItemMeta(infoMeta);
 		inventory.setItem(4, info);
+		
+		if(Config.getConfig("playerNoviceProtection.enabled").equals("true")){
+			if(playerProtectionTimes > playerOnlineTimes){
+				Material pvpProtectType = Material.getMaterial(Integer.valueOf(Config.getConfig("asWantedGui.ID.pvpProtect")));
+				ItemStack pvpProtect = new ItemStack(pvpProtectType);
+				ItemMeta pvpProtectMeta = pvpProtect.getItemMeta();
+				pvpProtectMeta.setDisplayName(Message.getMsg("asWantedGui.pvpProtect.Name"));
+				ArrayList<String> pvpProtectLore = Message.getList("asWantedGui.pvpProtect.Lore", String.valueOf(playerProtectionTimes),String.valueOf(playerOnlineTimes));
+				if(PVPList.contains(player.getName())){
+					pvpProtectLore.add(Message.getMsg("asWantedGui.pvpProtect.On"));
+				}else{
+					pvpProtectLore.add(Message.getMsg("asWantedGui.pvpProtect.Off"));
+				}
+				pvpProtectMeta.setLore(pvpProtectLore);
+				pvpProtectMeta.addEnchant(Enchantment.DURABILITY, -1, true);
+				pvpProtectMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+				pvpProtectMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+				pvpProtect.setItemMeta(pvpProtectMeta);
+				inventory.setItem(6, pvpProtect);
+			}
+		}
+		
 
 		Material jailInfoType = Material.getMaterial(Integer.valueOf(Config.getConfig("asWantedGui.ID.jailInfo")));
 		ItemStack jailInfo = new ItemStack(jailInfoType);
 		ItemMeta jailInfoMeta = jailInfo.getItemMeta();
-		ArrayList<String> jailInfoLore = Message.getList("asWantedGui.jailInfo.Lore",String.valueOf(jailTimes),wantedPoints,String.valueOf(jailCalculationTime),String.valueOf(jailCalculationTime*Integer.valueOf(wantedPoints)));
 		if(jailTimes > 0){
-			jailInfoMeta.setDisplayName("§c"+Message.getMsg("asWantedGui.jailInfo.Name"));
-			jailInfoLore.remove(1);
+			jailInfoMeta.setDisplayName(Message.getMsg("asWantedGui.jailInfo.Name"));
+			ArrayList<String> jailInfoLore = Message.getList("asWantedGui.jailInfo.Lore",String.valueOf(jailTimes));
+			jailInfoMeta.setLore(jailInfoLore);
 		}else{
-			jailInfoMeta.setDisplayName("§7"+Message.getMsg("asWantedGui.jailInfo.Name"));
-			jailInfoLore.remove(0);
+			jailInfoMeta.setDisplayName(Message.getMsg("asWantedGui.wantedInfo.Name"));
+			ArrayList<String> wantedInfoLore = Message.getList("asWantedGui.wantedInfo.Lore",String.valueOf(wantedCalculationTime));
+			jailInfoMeta.setLore(wantedInfoLore);
 		}
-		jailInfoMeta.setLore(jailInfoLore);
 		jailInfo.setItemMeta(jailInfoMeta);
 		inventory.setItem(47, jailInfo);
 		
@@ -488,7 +525,6 @@ public class InventoryManager implements Listener {
 	
 	@SuppressWarnings("deprecation")
 	static public void openSetPlayerGui(Player sender,String player){
-		//TODO 如果PlayerData为 Null 则不显示菜单
 		YamlConfiguration PlayerData = PVPAsWantedManager.onLoadData(player);
 		if(PlayerData == null){
 			sender.sendMessage(Message.getMsg("admin.playerNullMessage"));

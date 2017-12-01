@@ -15,6 +15,9 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.*;
 
+import vip.foxcraft.pvpaswantedmanager.Util.Config;
+import vip.foxcraft.pvpaswantedmanager.Util.Message;
+
 public class JailManager implements Listener {
 	static public void teleport(Player player,Location location){
 		Double X = location.getX();
@@ -159,13 +162,12 @@ public class JailManager implements Listener {
 		if(Config.getConfig("jail.eventManager.command.enabled").equals("false"))return;
 		Player player = event.getPlayer();
 		if(isJailPlayer(player)){
-			String cmd = event.getMessage();
+			String cmd = event.getMessage().split(" ")[0].replace("/", "");
 			ArrayList<String> list = Config.getList("jail.eventManager.command.whiteList");
 			//TODO 白名单
 			if(list !=null){
 				for(int i=0;i < list.size();){
-					String whiteCmd = list.get(i);
-					if(cmd.toLowerCase().contains(whiteCmd.toLowerCase()))return;
+					if(cmd.equalsIgnoreCase(list.get(i)))return;
 					i++;
 				}
 			}

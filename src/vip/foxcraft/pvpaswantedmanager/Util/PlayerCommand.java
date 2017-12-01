@@ -1,4 +1,4 @@
-package vip.foxcraft.pvpaswantedmanager;
+package vip.foxcraft.pvpaswantedmanager.Util;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
