@@ -38,7 +38,7 @@ import vip.foxcraft.pvpaswantedmanager.Util.PlayerCommand;
 public class PVPAsWantedManager extends JavaPlugin implements Listener
 {
 	HashMap<String,BukkitRunnable> RunMap = new HashMap<String,BukkitRunnable>();
-
+	public static int versionValue;
 	static public YamlConfiguration onLoadData(String name){
 		File DataFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "PlayerData" + File.separator + name + ".yml");
 		if(DataFile.exists()){
@@ -47,6 +47,20 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 			return PlayerData;
 		}
 		return null;
+	}
+	@SuppressWarnings("deprecation")
+	public void sendTitle(Player player,String title,String subTitle,int arg2,int arg3,int arg4){
+		if(PVPAsWantedManager.versionValue >= 1112){
+			player.sendTitle(title, subTitle, arg2, arg3, arg4);
+		}else if(PVPAsWantedManager.versionValue >= 188){
+			player.sendTitle(title, subTitle);
+			new BukkitRunnable(){
+				@Override
+				public void run() {
+					player.resetTitle();
+				}
+			}.runTaskLaterAsynchronously(this, arg3);
+		}
 	}
 	
 	static public void onSaveData(String name, YamlConfiguration PlayerData){
@@ -103,8 +117,10 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 	
 	@Override
 	public void onEnable(){
-		
-		
+		String version = Bukkit.getBukkitVersion().split("-")[0].replace(".", "_");
+    	Bukkit.getConsoleSender().sendMessage("[PVPAsWantedManager] §aServerVersion:" + version);
+		if(version.split("_").length < 3)version += "0";
+		versionValue = Integer.valueOf(version.replace("_", ""));
         Bukkit.getPluginManager().registerEvents(this, this);
         Bukkit.getPluginManager().registerEvents(new JailManager(), this);
         Bukkit.getPluginManager().registerEvents(new InventoryManager(), this);
@@ -283,6 +299,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 			PlayerData.set("jail.times", Integer.valueOf(0));
 	        PVPAsWantedManager.onSaveData(player.getName(), PlayerData);
 			JailManager.playerQuitJail(player);
+			onDeleteList(player.getName(),"JailedList");
 			sender.sendMessage(Message.getMsg("admin.quitJailPlayerMessage", args[1]));
 			player.sendMessage(Message.getMsg("player.jailedCancelMessage"));
 		}else{
@@ -299,6 +316,38 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 			}
 			Player player = (Player)sender;
 			JailManager.playerSetJail(player);
+		}else{
+			sender.sendMessage(Message.getMsg("admin.ConsoleNotMessage"));
+		}
+	}
+
+	@PlayerCommand(cmd="reload")
+	public void onReloadPlugin(CommandSender sender,String args[]){
+		if(sender instanceof Player){
+			if(!sender.hasPermission("pvpaswantedmanager." + args[0])) {
+				sender.sendMessage(Message.getMsg("player.noPermissionMessage"));
+				return;
+			}
+		}
+        Config.loadConfig();
+		Message.loadMessage();
+		sender.sendMessage(Message.getMsg("admin.reloadMessage"));
+	}
+
+	@PlayerCommand(cmd="set",arg = " <player>")
+	public void onSetPointGUI(CommandSender sender,String args[]){
+		if(sender instanceof Player){
+			if(!sender.hasPermission("pvpaswantedmanager." + args[0])) {
+				sender.sendMessage(Message.getMsg("player.noPermissionMessage"));
+				return;
+			}
+			if(args.length <= 1){
+				sender.sendMessage(Message.getMsg("admin.setPointsCorrectionsMessage"));
+				return;
+			}
+			Player player = (Player) sender;
+			String playerName = args[1];
+			InventoryManager.openSetPlayerGui(player, playerName);
 		}else{
 			sender.sendMessage(Message.getMsg("admin.ConsoleNotMessage"));
 		}
@@ -336,38 +385,6 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 		PVPAsWantedManager.onSaveData(args[1], PlayerData);
 		sender.sendMessage(Message.getMsg("admin.EditPlayerDataMessage"));
 		
-	}
-
-	@PlayerCommand(cmd="reload")
-	public void onReloadPlugin(CommandSender sender,String args[]){
-		if(sender instanceof Player){
-			if(!sender.hasPermission("pvpaswantedmanager." + args[0])) {
-				sender.sendMessage(Message.getMsg("player.noPermissionMessage"));
-				return;
-			}
-		}
-        Config.loadConfig();
-		Message.loadMessage();
-		sender.sendMessage(Message.getMsg("admin.reloadMessage"));
-	}
-
-	@PlayerCommand(cmd="set",arg = " <player>")
-	public void onSetPointGUI(CommandSender sender,String args[]){
-		if(sender instanceof Player){
-			if(!sender.hasPermission("pvpaswantedmanager." + args[0])) {
-				sender.sendMessage(Message.getMsg("player.noPermissionMessage"));
-				return;
-			}
-			if(args.length <= 1){
-				sender.sendMessage(Message.getMsg("admin.setPointsCorrectionsMessage"));
-				return;
-			}
-			Player player = (Player) sender;
-			String playerName = args[1];
-			InventoryManager.openSetPlayerGui(player, playerName);
-		}else{
-			sender.sendMessage(Message.getMsg("admin.ConsoleNotMessage"));
-		}
 	}
 
 	@EventHandler
@@ -567,7 +584,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 					e.setDeathMessage(null);
 					if(Config.getConfig("asWantedArrestBroadCastMessage").equals("true"))Bukkit.broadcastMessage(Message.getMsg("player.asWantedArrestbroadcastMessage", player.getDisplayName(),killer.getDisplayName()));
 					player.sendMessage(Message.getMsg("player.jailedJoinMessage",String.valueOf(jailPlayerTime)));
-					player.sendTitle(Message.getMsg("title.jailedJoin"), Message.getMsg("title.jailedJoinSub",String.valueOf(jailPlayerTime)), 5, 80, 5);
+					sendTitle(player,Message.getMsg("title.jailedJoin"), Message.getMsg("title.jailedJoinSub",String.valueOf(jailPlayerTime)), 5, 80, 5);
 					if(killerWantedPoints > 0){
 						if(killerWantedPoints >= playerWantedPoints){
 							KillerData.set("wanted.points", Integer.valueOf(killerWantedPoints - playerWantedPoints));
@@ -591,21 +608,23 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 					money = (value+playerWantedPoints*0.25)*taskRewardMoney+TaskRewardBasicMoney;
 					
 					Money.give(killer.getName(), money);
-					killer.sendTitle(Message.getMsg("title.asWantedArrest"), Message.getMsg("title.asWantedArrestSub",String.valueOf(money)), 5, 40, 5);
+					sendTitle(killer,Message.getMsg("title.asWantedArrest"), Message.getMsg("title.asWantedArrestSub",String.valueOf(money)), 5, 40, 5);
 					killer.sendMessage(Message.getMsg("player.asWantedArrestMessage",player.getName(),String.valueOf(money)));
 					
 					
 				}else{
-					if(killerWantedPoints == 0){
-						onCreateList(killer.getName(),"WantedList");
-					}
-					killer.sendMessage(Message.getMsg("player.newWantedMessage",player.getDisplayName(),String.valueOf(killerWantedPoints+1)));
-					KillerData.set("wanted.points", Integer.valueOf(killerWantedPoints + 1));
-					KillerData.set("wanted.cumulativePoints", Integer.valueOf(killerWantedCumulativePoints + 1));
-					if(killerWantedPoints + 1 >= killerHighestPoints){
-						KillerData.set("wanted.highestPoints", Integer.valueOf(killerHighestPoints + 1));
-					}
 					if(playerWantedPoints>0)setPlayerLevel(player, playerWantedPoints);
+					if(!killer.hasPermission("pvpaswantedmanager." + "wantedwhite")){
+						if(killerWantedPoints == 0){
+							onCreateList(killer.getName(),"WantedList");
+						}
+						killer.sendMessage(Message.getMsg("player.newWantedMessage",player.getDisplayName(),String.valueOf(killerWantedPoints+1)));
+						KillerData.set("wanted.points", Integer.valueOf(killerWantedPoints + 1));
+						KillerData.set("wanted.cumulativePoints", Integer.valueOf(killerWantedCumulativePoints + 1));
+						if(killerWantedPoints + 1 >= killerHighestPoints){
+							KillerData.set("wanted.highestPoints", Integer.valueOf(killerHighestPoints + 1));
+						}
+					}
 				}
 				onSaveData(player.getName(), PlayerData);
 				onSaveData(killer.getName(), KillerData);
@@ -646,12 +665,12 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 				Player player = (Player) event.getEntity();
 				if(isPlayerNovice(player.getName())){
 					event.setCancelled(true);
-					Damager.sendTitle("§c✘", "", 1, 35, 1);
+					sendTitle(Damager,"§c✘", "", 1, 35, 1);
 					Damager.sendMessage(Message.getMsg("player.pvpProtectMessage2",player.getDisplayName()));
 				}
 				if(isPlayerNovice(Damager.getName())){
 					event.setCancelled(true);
-					Damager.sendTitle("§c✘", "", 1, 35, 1);
+					sendTitle(Damager,"§c✘", "", 1, 35, 1);
 					Damager.sendMessage(Message.getMsg("player.pvpProtectMessage1",times));
 				}
 			}
@@ -661,12 +680,12 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 			Player Damager = (Player) event.getDamager();
 			if(isPlayerNovice(player.getName())){
 				event.setCancelled(true);
-				Damager.sendTitle("§c✘", "", 1, 35, 1);
+				sendTitle(Damager,"§c✘", "", 1, 35, 1);
 				Damager.sendMessage(Message.getMsg("player.pvpProtectMessage2",player.getDisplayName()));
 			}
 			if(isPlayerNovice(Damager.getName())){
 				event.setCancelled(true);
-				Damager.sendTitle("§c✘", "", 1, 35, 1);
+				sendTitle(Damager,"§c✘", "", 1, 35, 1);
 				Damager.sendMessage(Message.getMsg("player.pvpProtectMessage1",times));
 			}
 		}

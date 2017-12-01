@@ -8,15 +8,16 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 
+import vip.foxcraft.pvpaswantedmanager.PVPAsWantedManager;
+
 public class Config {
 	private static YamlConfiguration config;
 	static File configFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "config.yml");
 	
 	static public void createConfig(){
         Bukkit.getConsoleSender().sendMessage("§8[§6PVPAsWantedManager§8] §cCreate Config.yml");
-		config = new YamlConfiguration();//
+		config = new YamlConfiguration();
 		config.set("language", String.valueOf("CN"));
-		//TODO false TaskRewardGoldCoin asWantedArrest
 		config.set("asWantedArrestBroadCastMessage", Boolean.valueOf(true));
 		config.set("CancellAsWantedTarget.enabled", Boolean.valueOf(true));
 		config.set("CancellAsWantedTarget.money", Integer.valueOf(100));
@@ -27,7 +28,11 @@ public class Config {
 		config.set("asWantedGui.ID.pageUp", Integer.valueOf("262"));
 		config.set("asWantedGui.ID.jailInfo", Integer.valueOf("347"));
 		config.set("asWantedGui.ID.pvpProtect", Integer.valueOf("299"));
-		config.set("asWantedGui.ID.quit", Integer.valueOf("166"));
+		if(PVPAsWantedManager.versionValue >= 188){
+			config.set("asWantedGui.ID.quit", Integer.valueOf("166"));
+		}else{
+			config.set("asWantedGui.ID.quit", Integer.valueOf("324"));
+		}
 		config.set("asWantedGui.ID.cancellTarget", Integer.valueOf("352"));
 		config.set("timeTick.wantedPlayerTimeDeduction", String.valueOf("30min"));
 		config.set("timeTick.jailPlayerTimeDeduction", String.valueOf("20min"));

@@ -22,11 +22,17 @@ permissions:
     default: op
     children:
       pvpaswantedmanager.set: true
+      pvpaswantedmanager.setpoint: true
       pvpaswantedmanager.setjail: true
       pvpaswantedmanager.joinjail: true
+      pvpaswantedmanager.quitjail: true
       pvpaswantedmanager.reload: true
+      pvpaswantedmanager.wantedwhite: true
   pvpaswantedmanager.set:
     description: PAWM SET
+    default: op
+  pvpaswantedmanager.setpoint:
+    description: PAWM SETPOINT
     default: op
   pvpaswantedmanager.setjail:
     description: PAWM SETJAIL
@@ -39,4 +45,7 @@ permissions:
     default: op
   pvpaswantedmanager.reload:
     description: PAWM RELOAD
+    default: op
+  pvpaswantedmanager.wantedwhite:
+    description: WANTED WHITE
     default: op

@@ -10,6 +10,7 @@ import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -20,37 +21,38 @@ import vip.foxcraft.pvpaswantedmanager.Util.Message;
 
 public class JailManager implements Listener {
 	static public void teleport(Player player,Location location){
-		Double X = location.getX();
-		Double Y = location.getY();
-		Double Z = location.getZ();
-		World World = location.getWorld();
-		
-        for(int i=0;i <= (256-Y);){
-        	location = new Location(World,X,Y+i,Z);
-        if(location.getBlock().isEmpty()){
-        	location = new Location(World,X,Y+i+1,Z);
-        	if(location.getBlock().isEmpty()){
-        		if(i==0){
-        			for(int l=1;l <= Y;){
-        				location =  new Location(World,X,Y-l,Z);
-        				if(location.getBlock().isEmpty()){
-        					l++;
-        				}else{
-        					Y = Y -l+1;
-        					break;
-        				}
-        			}
-        		}
-        		Y = Y+i+0.1;
-        		location = new Location(World,X,Y,Z);
-        		i=500;
-        	}else{
-        		i=i+2;
-        	}
-        }else{
-        	i++;
-        }
-        }
+		if(PVPAsWantedManager.versionValue >= 1112){
+			Double X = location.getX();
+			Double Y = location.getY();
+			Double Z = location.getZ();
+			World World = location.getWorld();
+	        for(int i=0;i <= (256-Y);){
+	        	location = new Location(World,X,Y+i,Z);
+	        if(location.getBlock().isEmpty()){
+	        	location = new Location(World,X,Y+i+1,Z);
+	        	if(location.getBlock().isEmpty()){
+	        		if(i==0){
+	        			for(int l=1;l <= Y;){
+	        				location =  new Location(World,X,Y-l,Z);
+	        				if(location.getBlock().isEmpty()){
+	        					l++;
+	        				}else{
+	        					Y = Y -l+1;
+	        					break;
+	        				}
+	        			}
+	        		}
+	        		Y = Y+i+0.1;
+	        		location = new Location(World,X,Y,Z);
+	        		i=500;
+	        	}else{
+	        		i=i+2;
+	        	}
+	        }else{
+	        	i++;
+	        }
+	        }
+		}
         player.teleport(location);
 	}
 	static public void playerJoinJail(Player player,Location location){
@@ -60,7 +62,6 @@ public class JailManager implements Listener {
         double jailZ = Integer.valueOf(Config.getConfig("jail.location.Z"))+0.5;
         World jailWorld = Bukkit.getWorld(Config.getConfig("jail.location.World"));
         Location jail = new Location(jailWorld,jailX,jailY,jailZ);
-        player.setFlying(false);
         teleport(player,jail);
 	}
 	
@@ -133,12 +134,6 @@ public class JailManager implements Listener {
 		if(isJailPlayer(player))event.setCancelled(true);
 	}
 	@EventHandler
-	public void PlayerPickupArrowEvent(PlayerPickupArrowEvent event){
-		if(Config.getConfig("jail.eventManager.pickupItem.enabled").equals("false"))return;
-		Player player = event.getPlayer();
-		if(isJailPlayer(player))event.setCancelled(true);
-	}
-	@EventHandler
 	public void PlayerPortalEvent(PlayerPortalEvent event){
 		if(Config.getConfig("jail.eventManager.portal.enabled").equals("false"))return;
 		Player player = event.getPlayer();
@@ -173,6 +168,14 @@ public class JailManager implements Listener {
 			}
     		playerTeleportJail(player);
 			event.setCancelled(true);
+		}
+	}//PlayerDeathEvent
+	@EventHandler
+	public void PlayerDeathEvent(PlayerDeathEvent event){
+		Player player = event.getEntity();
+		if(isJailPlayer(player)){
+			player.spigot().respawn();
+    		playerTeleportJail(player);
 		}
 	}
 	@EventHandler

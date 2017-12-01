@@ -151,9 +151,11 @@ public class InventoryManager implements Listener {
 					//当点到通缉目标时
 					if(item.getItemMeta().getDisplayName().equals(Message.getMsg("setPlayerGui.asWanted.Name"))){
 						YamlConfiguration PlayerData = PVPAsWantedManager.onLoadData(player);
-						if(!PlayerData.getString("asWanted,target").equals("N/A")){
+						if(!PlayerData.getString("asWanted.target").equals("N/A")){
 							PlayerData.set("asWanted.target", String.valueOf("N/A"));
 							PVPAsWantedManager.onSaveData(player, PlayerData);
+							openSetPlayerGui(admin,player);
+						}else{
 							openSetPlayerGui(admin,player);
 						}
 					}
@@ -201,6 +203,14 @@ public class InventoryManager implements Listener {
 					if(PVPAsWantedManager.isPlayerOnline(player)){
 						Player p = Bukkit.getPlayer(player);
 						Location location = Bukkit.getPlayer(player).getLocation();
+				        int playerX = location.getBlockX();
+				        int playerY = location.getBlockY();
+				        int playerZ = location.getBlockZ();
+				        String playerWorld = location.getWorld().getName();
+				        PlayerData.set("attribute.X", playerX);
+				        PlayerData.set("attribute.Y", playerY);
+				        PlayerData.set("attribute.Z", playerZ);
+				        PlayerData.set("attribute.World", playerWorld);
 						PVPAsWantedManager.onCreateList(player, "JailedList");
 						JailManager.playerJoinJail(p, location);
 					}else{
@@ -319,7 +329,9 @@ public class InventoryManager implements Listener {
 				itemStack.setDurability((short) 3);
 			    ((SkullMeta) itemMeta).setOwner(name);
 			    loreList = Message.getList("asWantedGui.wantedSkull.Lore", String.valueOf(wantedpoints), String.valueOf(level), online,String.valueOf(Money),PKPoints);
-				loreList = (ArrayList<String>) PlaceholderAPI.setPlaceholders(p, loreList);
+		        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+					loreList = (ArrayList<String>) PlaceholderAPI.setPlaceholders(p, loreList);
+		        }
 			    itemMeta.setDisplayName(Message.getMsg("asWantedGui.wantedSkull.Name", name));
 				itemMeta.setLore(loreList);
 				itemStack.setItemMeta(itemMeta);
@@ -468,9 +480,11 @@ public class InventoryManager implements Listener {
 					pvpProtectLore.add(Message.getMsg("asWantedGui.pvpProtect.Off"));
 				}
 				pvpProtectMeta.setLore(pvpProtectLore);
-				pvpProtectMeta.addEnchant(Enchantment.DURABILITY, -1, true);
-				pvpProtectMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-				pvpProtectMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+				if(PVPAsWantedManager.versionValue >= 188){
+					pvpProtectMeta.addEnchant(Enchantment.DURABILITY, -1, true);
+					pvpProtectMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+					pvpProtectMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+				}
 				pvpProtect.setItemMeta(pvpProtectMeta);
 				inventory.setItem(6, pvpProtect);
 			}
@@ -544,7 +558,9 @@ public class InventoryManager implements Listener {
 		wantedMeta.setDisplayName(Message.getMsg("setPlayerGui.wanted.Name"));
 		ArrayList<String> wantedLore = Message.getList("setPlayerGui.wanted.Lore", String.valueOf(wantedPoint));
 		wantedMeta.setLore(wantedLore);
-		wantedMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+		if(PVPAsWantedManager.versionValue >= 188){
+			wantedMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+		}
 		wantedItem.setItemMeta(wantedMeta);
 		
 		ItemStack jailItem = new ItemStack(Material.IRON_FENCE);
