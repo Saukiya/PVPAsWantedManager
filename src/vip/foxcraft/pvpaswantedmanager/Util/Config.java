@@ -17,7 +17,7 @@ public class Config {
 		config = new YamlConfiguration();//
 		config.set("language", String.valueOf("CN"));
 		//TODO false TaskRewardGoldCoin asWantedArrest
-		config.set("asWantedArrest", Boolean.valueOf(true));
+		config.set("asWantedArrestBroadCastMessage", Boolean.valueOf(true));
 		config.set("CancellAsWantedTarget.enabled", Boolean.valueOf(true));
 		config.set("CancellAsWantedTarget.money", Integer.valueOf(100));
 		config.set("TaskReward.basicMoney", Integer.valueOf(500));

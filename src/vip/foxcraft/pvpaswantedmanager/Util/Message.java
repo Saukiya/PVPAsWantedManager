@@ -99,6 +99,7 @@ public class Message {
 		messages.set("player.jailedJoinMessage", String.valueOf("&8[&c通缉&8] &7你被&c抓进监狱&7了! 需要坐牢 &6{0}&7分钟! 请好好的在监狱改过自新！!"));
 		messages.set("player.jailedeventMessage", String.valueOf("&8[&c通缉&8] &7请老老实实的等待释放！"));
 		messages.set("player.asWantedArrestMessage", String.valueOf("&8[&c通缉&8] &7你成功的抓住了 &6{0}&7 通缉犯! &6任务奖励: &e{1}&7金币"));	
+		messages.set("player.asWantedArrestbroadcastMessage", String.valueOf("&8[&c通缉&8] &7玩家 &c{0}&7被 {1}抓进监狱了!"));
 		messages.set("player.noPermissionMessage", String.valueOf("&8[&c通缉&8] &7你没有权限"));
 		messages.set("player.nobalanceMessage", String.valueOf("&8[&c通缉&8] &7你没有足够的金币"));
 		messages.set("player.pvpProtectMessage1", String.valueOf("&8[&c通缉&8] &7你还在新手保护阶段，达到 &6{0}&7分钟即解除保护!"));

@@ -565,7 +565,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 					// 被抓消息 player 
 					PlayerDeathEvent e = (PlayerDeathEvent) event;
 					e.setDeathMessage(null);
-					Bukkit.broadcastMessage(Message.getMsg("", player.getDisplayName(),killer.getDisplayName()));
+					if(Config.getConfig("asWantedArrestBroadCastMessage").equals("true"))Bukkit.broadcastMessage(Message.getMsg("player.asWantedArrestbroadcastMessage", player.getDisplayName(),killer.getDisplayName()));
 					player.sendMessage(Message.getMsg("player.jailedJoinMessage",String.valueOf(jailPlayerTime)));
 					player.sendTitle(Message.getMsg("title.jailedJoin"), Message.getMsg("title.jailedJoinSub",String.valueOf(jailPlayerTime)), 5, 80, 5);
 					if(killerWantedPoints > 0){
