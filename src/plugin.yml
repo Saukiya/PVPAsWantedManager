@@ -28,6 +28,7 @@ permissions:
       pvpaswantedmanager.quitjail: true
       pvpaswantedmanager.reload: true
       pvpaswantedmanager.wantedwhite: true
+      pvpaswantedmanager.levelwhite: true
   pvpaswantedmanager.set:
     description: PAWM SET
     default: op
@@ -48,4 +49,7 @@ permissions:
     default: op
   pvpaswantedmanager.wantedwhite:
     description: WANTED WHITE
+    default: op
+  pvpaswantedmanager.levelwhite:
+    description: LEVEL WHITE
     default: op

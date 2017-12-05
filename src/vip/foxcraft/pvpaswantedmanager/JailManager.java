@@ -83,11 +83,6 @@ public class JailManager implements Listener {
         World playerWorld = Bukkit.getWorld(PlayerData.getString("attribute.World"));
         Location playerLocatioin = new Location(playerWorld,playerX,playerY,playerZ);
         teleport(player,playerLocatioin);
-        PlayerData.set("attribute.X", Integer.valueOf(0));
-        PlayerData.set("attribute.Y", Integer.valueOf(0));
-        PlayerData.set("attribute.Z", Integer.valueOf(0));
-        PlayerData.set("attribute.World", String.valueOf("world"));
-		PVPAsWantedManager.onSaveData(player.getName(),PlayerData);
 	}
 	
 	static public void playerSetJail(Player player){
@@ -114,7 +109,6 @@ public class JailManager implements Listener {
 
 	@EventHandler
 	public void PlayerJoinEvent(PlayerJoinEvent event){
-		if(Config.getConfig("jail.eventManager.joinServer.enabled").equals("false"))return;
 		Player player = event.getPlayer();
 		if(isJailPlayer(player)){
 			playerTeleportJail(player);;

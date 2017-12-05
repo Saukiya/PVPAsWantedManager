@@ -109,6 +109,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 		}
 	}
 	public void setPlayerLevel(Player player , int playerWantedPoints){
+		if(player.hasPermission("pvpaswantedmanager.levelwhite"))return;
 		int level = player.getLevel() - playerWantedPoints;
 		if(level<0)level=0;
 		player.setLevel(level);
@@ -182,7 +183,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
                                             continue;
                                 		}
                                 	}
-                                	sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7/"+ label + " "+sub.cmd()+"&6"+sub.arg()+"&7-:&3 "+Message.getMsg("command."+ sub.cmd())));
+                                	sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7/"+ label + " "+sub.cmd()+"&6"+sub.arg()+"&7-:&e "+Message.getMsg("command."+ sub.cmd())));
                                 }
                         }
                         return true;
@@ -297,9 +298,13 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 				return;
 			}
 			PlayerData.set("jail.times", Integer.valueOf(0));
-	        PVPAsWantedManager.onSaveData(player.getName(), PlayerData);
+	        PlayerData.set("attribute.X", Integer.valueOf(0));
+	        PlayerData.set("attribute.Y", Integer.valueOf(0));
+	        PlayerData.set("attribute.Z", Integer.valueOf(0));
+	        PlayerData.set("attribute.World", String.valueOf("world"));
 			JailManager.playerQuitJail(player);
 			onDeleteList(player.getName(),"JailedList");
+	        PVPAsWantedManager.onSaveData(player.getName(), PlayerData);
 			sender.sendMessage(Message.getMsg("admin.quitJailPlayerMessage", args[1]));
 			player.sendMessage(Message.getMsg("player.jailedCancelMessage"));
 		}else{
@@ -462,6 +467,10 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 						if(JailTime >= 2){
 							playerJailTimes = playerJailTimes -1;
 							if(playerJailTimes == 0){
+						        PlayerData.set("attribute.X", Integer.valueOf(0));
+						        PlayerData.set("attribute.Y", Integer.valueOf(0));
+						        PlayerData.set("attribute.Z", Integer.valueOf(0));
+						        PlayerData.set("attribute.World", String.valueOf("world"));
 								JailManager.playerQuitJail(player);
 								player.sendMessage(Message.getMsg("player.jailedCancelMessage"));
 								onDeleteList(player.getName(),"JailedList");
@@ -560,7 +569,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 						onSaveData(killer.getName() , KillerData);
 						return;
 					}
-			        int jailPlayerTime = Integer.valueOf(Config.getConfig("timeTick.jailPlayerTimeDeduction").replace("min", "").replace("m",""))*playerWantedPoints;
+			        int jailPlayerTime = Integer.valueOf(Config.getConfig("timeTick.jailPlayerTimes").replace("min", "").replace("m",""))*playerWantedPoints;
 			        
 					PlayerData.set("jail.times", Integer.valueOf(jailPlayerTime));
 					PlayerData.set("jail.cumulativeNumber", Integer.valueOf(playerJailCumulativeNumber + 1));
@@ -639,6 +648,8 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 	public void onPlayerExpChange(PlayerExpChangeEvent event){
 		Player player = event.getPlayer();
 		YamlConfiguration PlayerData = onLoadData(player.getName());
+		PlayerData.set("attribute.level", player.getLevel());
+		onSaveData(player.getName(), PlayerData);
 		if(Config.getConfig("extraExp.enabled").equals("true")){
 			int playerWantedPoints = PlayerData.getInt("wanted.points");
 			if(playerWantedPoints > 0){

@@ -35,7 +35,7 @@ public class Config {
 		}
 		config.set("asWantedGui.ID.cancellTarget", Integer.valueOf("352"));
 		config.set("timeTick.wantedPlayerTimeDeduction", String.valueOf("30min"));
-		config.set("timeTick.jailPlayerTimeDeduction", String.valueOf("20min"));
+		config.set("timeTick.jailPlayerTimes", String.valueOf("20min"));
 		config.set("timeTick.targetTimeMessage", String.valueOf("1min"));
 		config.set("playerNoviceProtection.enabled", Boolean.valueOf(true));
 		config.set("playerNoviceProtection.times", String.valueOf("300min"));
@@ -50,7 +50,6 @@ public class Config {
 		config.set("jail.eventManager.chat.enabled",Boolean.valueOf(true));
 		config.set("jail.eventManager.dropItem.enabled",Boolean.valueOf(true));
 		config.set("jail.eventManager.InteractEntity.enabled",Boolean.valueOf(true));
-		config.set("jail.eventManager.joinServer.enabled",Boolean.valueOf(true));
 		config.set("jail.eventManager.pickupItem.enabled",Boolean.valueOf(true));
 		config.set("jail.eventManager.portal.enabled",Boolean.valueOf(true));
 		ArrayList<String> listCmd = new ArrayList<String>();

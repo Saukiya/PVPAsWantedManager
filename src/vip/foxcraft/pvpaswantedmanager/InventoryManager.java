@@ -222,7 +222,11 @@ public class InventoryManager implements Listener {
 					if(PVPAsWantedManager.isPlayerOnline(player)){
 						Player p = Bukkit.getPlayer(player);
 						PVPAsWantedManager.onDeleteList(player, "JailedList");
-						JailManager.playerQuitJail(p);;
+				        PlayerData.set("attribute.X", Integer.valueOf(0));
+				        PlayerData.set("attribute.Y", Integer.valueOf(0));
+				        PlayerData.set("attribute.Z", Integer.valueOf(0));
+				        PlayerData.set("attribute.World", String.valueOf("world"));
+						JailManager.playerQuitJail(p);
 					}else{
 						admin.sendMessage(Message.getMsg("admin.playerOfflineMessage"));
 						event.setCancelled(true);
@@ -362,20 +366,13 @@ public class InventoryManager implements Listener {
 				itemStack.setDurability((short) 3);
 			    ((SkullMeta) itemMeta).setOwner(name);
 			    loreList = Message.getList("asWantedGui.wantedSkull.Lore", String.valueOf(wantedpoints), String.valueOf(level), offline,String.valueOf(Money),PKPoints);
-			    for(int l=0;l<loreList.size();){
-			    	String string = loreList.get(l);
-					int v = Integer.valueOf(string.split("%").length/2);
-					for(int i=0;i<=v;i++){
-						if(string.split("%").length >=2){
-							String str = string.split("%")[1];
-							str = string.replace(str, "");
-							if(str.contains("%%")){
-								string = str.replace("%%", Message.getMsg("asWantedGui.wantedSkull.Placeholder"));
-							}
-						}
+			    for(int i=0;i<loreList.size();){
+			    	String string = loreList.get(i);
+					if(string.split("%").length >=2){
+					loreList.remove(i);
+					}else{
+						i++;
 					}
-					loreList.set(l, string);
-			    	l++;
 			    }
 			    itemMeta.setDisplayName(Message.getMsg("asWantedGui.wantedSkull.Name", name));
 				itemMeta.setLore(loreList);
