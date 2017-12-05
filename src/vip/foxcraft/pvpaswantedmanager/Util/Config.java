@@ -19,6 +19,8 @@ public class Config {
 		config = new YamlConfiguration();
 		config.set("language", String.valueOf("CN"));
 		config.set("asWantedArrestBroadCastMessage", Boolean.valueOf(true));
+		config.set("DeathPenalize.enabled", Boolean.valueOf(true));
+		config.set("DeathPenalize.Level", Double.valueOf(1));
 		config.set("CancellAsWantedTarget.enabled", Boolean.valueOf(true));
 		config.set("CancellAsWantedTarget.money", Integer.valueOf(100));
 		config.set("TaskReward.basicMoney", Integer.valueOf(500));

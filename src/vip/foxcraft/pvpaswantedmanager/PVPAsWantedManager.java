@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Pattern;
@@ -110,10 +111,39 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 	}
 	public void setPlayerLevel(Player player , int playerWantedPoints){
 		if(player.hasPermission("pvpaswantedmanager.levelwhite"))return;
-		int level = player.getLevel() - playerWantedPoints;
-		if(level<0)level=0;
-		player.setLevel(level);
-		player.sendMessage(Message.getMsg("player.deathMessage",String.valueOf(playerWantedPoints)));
+		if(!Config.getConfig("DeathPenalize.enabled").equals("true"))return;
+		if(player.getExp() ==0 ||player.getLevel() == 0)return;
+		YamlConfiguration PlayerData = onLoadData(player.getName());
+		Double value = Double.valueOf(Config.getConfig("DeathPenalize.Level"));
+		if(value !=1){
+			DecimalFormat    df   = new DecimalFormat("######0.0");
+			value = Double.valueOf(df.format(value*playerWantedPoints));
+			String str = String.valueOf(value).replace(".", "-");
+			playerWantedPoints = Integer.valueOf(str.split("-")[0]);
+			float exp = Float.valueOf("0."+str.split("-")[1]);
+			if(exp != 0){
+				exp = player.getExp()-exp;
+				if(exp < 0){
+					playerWantedPoints ++;
+					exp = 1+exp;
+				}
+				player.setExp(exp);
+			}
+			int level = player.getLevel() - playerWantedPoints;
+			if(level<0){
+				level=0;
+				player.setExp(0);
+			}
+			player.setLevel(level);
+			player.sendMessage(Message.getMsg("player.deathMessage",String.valueOf(value)));
+		}else{
+			int level = player.getLevel() - playerWantedPoints;
+			if(level<0)level=0;
+			player.setLevel(level);
+			player.sendMessage(Message.getMsg("player.deathMessage",String.valueOf(playerWantedPoints)));
+		}
+		PlayerData.set("attribute.level", player.getLevel());
+		onSaveData(player.getName(),PlayerData);
 	}
 	
 	@Override
