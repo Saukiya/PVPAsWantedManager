@@ -477,7 +477,7 @@ public class InventoryManager implements Listener {
 					pvpProtectLore.add(Message.getMsg("asWantedGui.pvpProtect.Off"));
 				}
 				pvpProtectMeta.setLore(pvpProtectLore);
-				if(PVPAsWantedManager.versionValue >= 188){
+				if(PVPAsWantedManager.versionValue >= 190){
 					pvpProtectMeta.addEnchant(Enchantment.DURABILITY, -1, true);
 					pvpProtectMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
 					pvpProtectMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
@@ -555,7 +555,7 @@ public class InventoryManager implements Listener {
 		wantedMeta.setDisplayName(Message.getMsg("setPlayerGui.wanted.Name"));
 		ArrayList<String> wantedLore = Message.getList("setPlayerGui.wanted.Lore", String.valueOf(wantedPoint));
 		wantedMeta.setLore(wantedLore);
-		if(PVPAsWantedManager.versionValue >= 188){
+		if(PVPAsWantedManager.versionValue >= 190){
 			wantedMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
 		}
 		wantedItem.setItemMeta(wantedMeta);

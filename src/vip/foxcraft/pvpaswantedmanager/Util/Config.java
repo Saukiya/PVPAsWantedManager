@@ -44,6 +44,9 @@ public class Config {
 		config.set("extraExp.enabled", Boolean.valueOf(false));
 		config.set("extraExp.message", Boolean.valueOf(true));
 		config.set("extraExp.pointsValue", String.valueOf("10%"));
+		ArrayList<String> worldWhite = new ArrayList<String>();
+		worldWhite.add("pvpworld");
+		config.set("worldWhiteList", worldWhite);
 		config.set("jail.eventManager.damage.enabled",Boolean.valueOf(true));
 		config.set("jail.eventManager.blockPlace.enabled",Boolean.valueOf(true));
 		config.set("jail.eventManager.blockBreak.enabled",Boolean.valueOf(true));

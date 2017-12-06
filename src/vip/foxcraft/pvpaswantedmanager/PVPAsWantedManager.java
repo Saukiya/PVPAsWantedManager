@@ -112,7 +112,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 	public void setPlayerLevel(Player player , int playerWantedPoints){
 		if(player.hasPermission("pvpaswantedmanager.levelwhite"))return;
 		if(!Config.getConfig("DeathPenalize.enabled").equals("true"))return;
-		if(player.getExp() ==0 ||player.getLevel() == 0)return;
+		if(player.getExp() ==0 &&player.getLevel() == 0)return;
 		YamlConfiguration PlayerData = onLoadData(player.getName());
 		Double value = Double.valueOf(Config.getConfig("DeathPenalize.Level"));
 		if(value !=1){
@@ -577,6 +577,12 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 	public void onKilledPlayer(EntityDeathEvent event){
 		if(event.getEntityType().equals(EntityType.PLAYER)){
 			Player player = (Player) event.getEntity();
+			//检测是否在世界白名单
+			String world = player.getWorld().getName();
+			ArrayList<String> worldWhiteList = Config.getList("worldWhiteList");
+			for(int i=0;i<worldWhiteList.size();i++){
+				if(worldWhiteList.get(i).equalsIgnoreCase(world))return;
+			}
 			YamlConfiguration PlayerData = onLoadData(player.getName());
 			int playerWantedPoints = PlayerData.getInt("wanted.points");
 			int playerJailCumulativeNumber = PlayerData.getInt("jail.cumulativeNumber");
