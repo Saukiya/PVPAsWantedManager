@@ -152,6 +152,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
     	Bukkit.getConsoleSender().sendMessage("[PVPAsWantedManager] §aServerVersion:" + version);
 		if(version.split("_").length < 3)version += "0";
 		versionValue = Integer.valueOf(version.replace("_", ""));
+		if(versionValue >1600) versionValue = versionValue/10;
         Bukkit.getPluginManager().registerEvents(this, this);
         Bukkit.getPluginManager().registerEvents(new JailManager(), this);
         Bukkit.getPluginManager().registerEvents(new InventoryManager(), this);
