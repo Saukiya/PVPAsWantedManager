@@ -8,10 +8,12 @@ import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.*;
@@ -178,24 +180,35 @@ public class JailManager implements Listener {
 		Player player = event.getPlayer();
 		if(isJailPlayer(player))event.setCancelled(true);
 	}
+	
 	@EventHandler
 	public void PlayerDamageByEntityEvent(EntityDamageByEntityEvent event){
-		if(event.getDamager() instanceof Arrow){
-			if(Config.getConfig("jail.eventManager.damage.enabled").equals("false"))return;
-			Arrow arrow = (Arrow) event.getDamager();
-			if(arrow.getShooter() instanceof Player){
-				Player player = (Player) arrow.getShooter();
-				if(isJailPlayer(player))event.setCancelled(true);
+		if(Config.getConfig("jail.eventManager.damage.enabled").equals("false"))return;
+		if(event.getDamager() instanceof Projectile){
+			Projectile pro = (Projectile) event.getDamager();
+			if(pro.getShooter() instanceof Player){
+				Player Damager = (Player) pro.getShooter();
+				if(isJailPlayer(Damager)){
+					if(pro.getFireTicks() >0){
+						event.getEntity().setFireTicks(0);
+					}
+					event.setCancelled(true);
+				}
+				Player player = (Player) event.getEntity();
+				if(isJailPlayer(player)){
+					if(pro.getFireTicks() >0){
+						player.setFireTicks(0);
+					}
+					event.setCancelled(true);
+				}
 			}
 		}
 		if(event.getEntity() instanceof Player){
-			if(Config.getConfig("jail.eventManager.damage.enabled").equals("false"))return;
 			Player player = (Player) event.getEntity();
 			if(isJailPlayer(player))event.setCancelled(true);
 			
 		}
 		if(event.getDamager() instanceof Player){
-			if(Config.getConfig("jail.eventManager.damage.enabled").equals("false"))return;
 			Player player = (Player) event.getDamager();
 			if(isJailPlayer(player))event.setCancelled(true);
 		}

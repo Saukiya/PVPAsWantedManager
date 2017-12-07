@@ -19,6 +19,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -706,19 +707,25 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 	public void PlayerDamageByEntityEvent(EntityDamageByEntityEvent event){
 		if(Config.getConfig("playerNoviceProtection.enabled").equals("false"))return;
 		String times = Config.getConfig("playerNoviceProtection.times").replace("min", "").replace("m", "");
-		if(event.getDamager() instanceof Arrow){
-			Arrow arrow = (Arrow) event.getDamager();
-			if(arrow.getShooter() instanceof Player && event.getEntity() instanceof Player){
-				Player Damager = (Player) arrow.getShooter();
+		if(event.getDamager() instanceof Projectile){
+			Projectile pro = (Projectile) event.getDamager();
+			if(pro.getShooter() instanceof Player && event.getEntity() instanceof Player){
+				Player Damager = (Player) pro.getShooter();
 				Player player = (Player) event.getEntity();
 				if(isPlayerNovice(player.getName())){
 					event.setCancelled(true);
 					sendTitle(Damager,"§c✘", "", 1, 35, 1);
+					if(pro.getFireTicks() >0){
+						player.setFireTicks(0);
+					}
 					Damager.sendMessage(Message.getMsg("player.pvpProtectMessage2",player.getDisplayName()));
 				}
 				if(isPlayerNovice(Damager.getName())){
 					event.setCancelled(true);
 					sendTitle(Damager,"§c✘", "", 1, 35, 1);
+					if(pro.getFireTicks() >0){
+						player.setFireTicks(0);
+					}
 					Damager.sendMessage(Message.getMsg("player.pvpProtectMessage1",times));
 				}
 			}
