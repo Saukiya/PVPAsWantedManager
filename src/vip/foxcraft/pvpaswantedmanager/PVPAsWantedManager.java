@@ -1,5 +1,6 @@
 package vip.foxcraft.pvpaswantedmanager;
 
+import java.awt.Event;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -174,7 +175,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
         }
         
 		//检测PlayerData文件夹是否存在
-        File DataFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "playerdata");
+        File DataFile = new File("plugins" + File.separator + "PVPAsWantedManager" + File.separator + "PlayerData");
 		if(!DataFile.exists()){
 			DataFile.mkdirs();
 		}
@@ -211,9 +212,10 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
                                 PlayerCommand sub=method.getAnnotation(PlayerCommand.class);
                                 if(sender.hasPermission("pvpaswantedmanager." + sub.cmd())){
                                 	if(!(sender instanceof Player)){
-                                		if(sub.cmd().equals("open")||sub.cmd().equals("set")||sub.cmd().equals("setjail")){
-                                            continue;
-                                		}
+                                		if(sub.cmd().equals("open")||sub.cmd().equals("set")||sub.cmd().equals("setJail")||sub.cmd().equals("surrend"))continue;
+                                	}
+                                	if(sub.cmd().equals("surrend")){
+                                		if(!Config.getConfig("SurrendPlayer.enabled").equals("true"))continue;
                                 	}
                                 	sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7/"+ label + " "+sub.cmd()+"&6"+sub.arg()+"&7-:&e "+Message.getMsg("command."+ sub.cmd())));
                                 }
@@ -260,9 +262,59 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 			sender.sendMessage(Message.getMsg("admin.ConsoleNotMessage"));
 		}
 	}
-	
 
-	@PlayerCommand(cmd="joinjail",arg = " <player> <times>")
+	@PlayerCommand(cmd="surrend")
+	public void onSurrenderJoinJail(CommandSender sender,String args[]){
+		if(!Config.getConfig("SurrendPlayer.enabled").equals("true"))return;
+		if(sender instanceof Player){
+			if(!sender.hasPermission("pvpaswantedmanager." + args[0])) {
+				sender.sendMessage(Message.getMsg("player.noPermissionMessage"));
+				return;
+			}
+			if(args.length > 1 ){
+				sender.sendMessage(Message.getMsg("admin.wrongFormatMessage"));
+				return;
+			}
+		}else{
+			sender.sendMessage(Message.getMsg("admin.ConsoleNotMessage"));
+			return;
+		}
+
+		Player player = (Player) sender;
+		JailManager.surrendPlayer(player);
+	}
+
+	@PlayerCommand(cmd="setTime",arg = " <player> <times>")
+	public void onSetJailTimes(CommandSender sender,String args[]){
+		if(sender instanceof Player){
+			if(!sender.hasPermission("pvpaswantedmanager." + args[0])) {
+				sender.sendMessage(Message.getMsg("player.noPermissionMessage"));
+				return;
+			}
+		}
+		if(args.length <= 2 ){
+			sender.sendMessage(Message.getMsg("admin.setTimeCorrectionsMessage"));
+			return;
+		}
+		if(!Pattern.compile("[-0-9]*").matcher(args[2]).matches()){
+			sender.sendMessage(Message.getMsg("admin.wrongFormatMessage"));
+			return;
+		}
+		String playerName = args[1];
+        YamlConfiguration PlayerData = PVPAsWantedManager.onLoadData(playerName);
+        if(PlayerData == null){
+        	sender.sendMessage(Message.getMsg("admin.playerNullMessage"));
+        	return;
+        }
+		int times = PlayerData.getInt("jail.times");
+		int value = times + Integer.valueOf(args[2]);
+		PlayerData.set("jail.times", value);
+		onSaveData(playerName, PlayerData);
+		sender.sendMessage(Message.getMsg("admin.EditPlayerJailTimesMessage", playerName,String.valueOf(value)));
+		
+	}
+
+	@PlayerCommand(cmd="joinJail",arg = " <player> <times>")
 	public void onJoinJail(CommandSender sender,String args[]){
 		if(sender instanceof Player){
 			if(!sender.hasPermission("pvpaswantedmanager." + args[0])) {
@@ -298,7 +350,9 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 	        PlayerData.set("attribute.Z", playerZ);
 	        PlayerData.set("attribute.World", playerWorld);
 	        PlayerData.set("jail.times", times);
-	        PVPAsWantedManager.onSaveData(player.getName(), PlayerData);
+	        onDeleteList(player.getName(), "WantedList");
+	        onCreateList(player.getName(), "JailedList");
+	        onSaveData(player.getName(), PlayerData);
 			JailManager.playerJoinJail(player,location);
 			sender.sendMessage(Message.getMsg("admin.joinJailPlayerMessage", args[1],args[2]));
 			player.sendMessage(Message.getMsg("player.jailedJoinMessage",args[2]));
@@ -308,7 +362,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 	}
 	
 
-	@PlayerCommand(cmd="quitjail",arg = " <player>")
+	@PlayerCommand(cmd="quitJail",arg = " <player>")
 	public void onQuitJail(CommandSender sender,String args[]){
 		if(sender instanceof Player){
 			if(!sender.hasPermission("pvpaswantedmanager." + args[0])) {
@@ -344,7 +398,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 		}
 	}
 
-	@PlayerCommand(cmd="setjail")
+	@PlayerCommand(cmd="setJail")
 	public void onSetJail(CommandSender sender,String args[]){
 		if(sender instanceof Player){
 			if(!sender.hasPermission("pvpaswantedmanager." + args[0])) {
@@ -390,7 +444,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 		}
 	}
 
-	@PlayerCommand(cmd="setpoint",arg = " <player> <value>")
+	@PlayerCommand(cmd="setPoint",arg = " <player> <value>")
 	public void onSetPoint(CommandSender sender,String args[]){
 		if(sender instanceof Player){
 			if(!sender.hasPermission("pvpaswantedmanager." + args[0])) {
@@ -570,6 +624,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 
 	@EventHandler
 	public void onQuitPlayer(PlayerQuitEvent event){
+		if(!RunMap.containsKey(event.getPlayer().getName()))return;
 		RunMap.get(event.getPlayer().getName()).cancel();
 		RunMap.remove(event.getPlayer().getName());
 	}
@@ -608,7 +663,9 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 						return;
 					}
 			        int jailPlayerTime = Integer.valueOf(Config.getConfig("timeTick.jailPlayerTimes").replace("min", "").replace("m",""))*playerWantedPoints;
-			        
+			        if(Money.has(player.getName(), jailPlayerTime)){
+			        	
+			        }
 					PlayerData.set("jail.times", Integer.valueOf(jailPlayerTime));
 					PlayerData.set("jail.cumulativeNumber", Integer.valueOf(playerJailCumulativeNumber + 1));
 					PlayerData.set("wanted.points", Integer.valueOf(0));
@@ -628,8 +685,10 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 					JailManager.playerJoinJail(player,location);
 					// 被抓消息 player 
 					PlayerDeathEvent e = (PlayerDeathEvent) event;
-					e.setDeathMessage(null);
-					if(Config.getConfig("asWantedArrestBroadCastMessage").equals("true"))Bukkit.broadcastMessage(Message.getMsg("player.asWantedArrestbroadcastMessage", player.getDisplayName(),killer.getDisplayName()));
+					if(Config.getConfig("asWantedArrestBroadCastMessage").equals("true")){
+						e.setDeathMessage(null);
+						Bukkit.broadcastMessage(Message.getMsg("player.asWantedArrestbroadcastMessage", player.getDisplayName(),killer.getDisplayName()));
+					}
 					player.sendMessage(Message.getMsg("player.jailedJoinMessage",String.valueOf(jailPlayerTime)));
 					sendTitle(player,Message.getMsg("title.jailedJoin"), Message.getMsg("title.jailedJoinSub",String.valueOf(jailPlayerTime)), 5, 80, 5);
 					if(killerWantedPoints > 0){
@@ -653,10 +712,21 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 						value= playerWantedPoints - killerWantedPoints;
 					}
 					money = (value+playerWantedPoints*0.25)*taskRewardMoney+TaskRewardBasicMoney;
-					
 					Money.give(killer.getName(), money);
 					sendTitle(killer,Message.getMsg("title.asWantedArrest"), Message.getMsg("title.asWantedArrestSub",String.valueOf(money)), 5, 40, 5);
 					killer.sendMessage(Message.getMsg("player.asWantedArrestMessage",player.getName(),String.valueOf(money)));
+					//新增扣取逮捕玩家金币功能
+					if(Config.getConfig("ArrestPunish.enabled").equals("true")){
+						money = money/2;
+						if(Money.has(player.getName(), money)){
+							Money.take(player.getName(), money);
+							player.sendMessage(Message.getMsg("player.arrestPunishMessage", String.valueOf(money)));
+						}else{
+							int i = Integer.valueOf(String.valueOf((money/10)).replace(".", "-").split("-")[0]);
+							PlayerData.set("jail.times", Integer.valueOf(jailPlayerTime+i));
+							player.sendMessage(Message.getMsg("player.arrestPunishFailMessage", String.valueOf(i)));
+						}
+					}
 					
 					
 				}else{

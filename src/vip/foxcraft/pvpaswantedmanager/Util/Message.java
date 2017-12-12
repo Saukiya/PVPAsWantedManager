@@ -47,6 +47,11 @@ public class Message {
 		infoLore.add("&3连续通缉次数: &7{6}");
 		messages.set("asWantedGui.info.Lore", infoLore);
 		messages.set("asWantedGui.info.exp", String.valueOf("&6经验加成: &a{0}%"));
+		messages.set("asWantedGui.surrend.Name", String.valueOf("&b&l主动自首"));
+		ArrayList<String> surrendLore = new ArrayList<String>();
+		surrendLore.add("&3主动自首将不会扣除金币、等级");
+		surrendLore.add("&6点击自首");
+		messages.set("asWantedGui.surrend.Lore", surrendLore);
 		messages.set("asWantedGui.pvpProtect.Name", String.valueOf("&b&l新手保护"));
 		ArrayList<String> pvpProtectLore = new ArrayList<String>();
 		pvpProtectLore.add("&3累计在线小于 &6{0}&3分钟 拥有&6PVP&3保护");
@@ -92,12 +97,17 @@ public class Message {
 		messages.set("player.onlineTargetMessage", String.valueOf("&8[&c通缉&8] &7你的通缉目标 &c{0}&7 当前PK值为: {1} ，平面坐标（&6{2}&7，&6{3}&7），所在世界: &6{4}"));
 		messages.set("player.offlineTargetMessage", String.valueOf("&8[&c通缉&8] &7你的通缉目标当前不在线!"));
 		messages.set("player.cancellTargetMessage", String.valueOf("&8[&c通缉&8] &7你已经放弃了本次任务! 支付 &6{0}&7金币，剩余 &c{1}&7金币"));
-		messages.set("player.returnZeroWantedPointMessage", String.valueOf("&8[&c通缉&8] &7你的PK值已消除！"));
-		messages.set("player.timeDeductionWantedPointMessage", String.valueOf("&8[&c通缉&8] &7你的PK值消除到 &c{0}&7 了！"));
+		messages.set("player.returnZeroWantedPointMessage", String.valueOf("&8[&c通缉&8] &7你的PK值已消除!"));
+		messages.set("player.timeDeductionWantedPointMessage", String.valueOf("&8[&c通缉&8] &7你的PK值消除到 &c{0}&7 了!"));
 		messages.set("player.jailedCancelMessage", String.valueOf("&8[&c通缉&8] &7你已经出狱! 请好好干!"));	
 		messages.set("player.timeDeductionJailedMessage", String.valueOf("&8[&c通缉&8] &7你还剩 &c{0}&7 分钟就能出狱!请不要擅自&c退出&7游戏!退出游戏不自动&c消除&7监狱时间!"));	
-		messages.set("player.jailedJoinMessage", String.valueOf("&8[&c通缉&8] &7你被&c抓进监狱&7了! 需要坐牢 &6{0}&7分钟! 请好好的在监狱改过自新！!"));
-		messages.set("player.jailedeventMessage", String.valueOf("&8[&c通缉&8] &7请老老实实的等待释放！"));
+		messages.set("player.jailedJoinMessage", String.valueOf("&8[&c通缉&8] &7你被&c抓进监狱&7了! 需要坐牢 &6{0}&7分钟! 请好好的在监狱改过自新!!"));
+		messages.set("player.surrendMessage", String.valueOf("&8[&c通缉&8] &7你主动自首了!将坐牢 &6{0}&7分钟!"));
+		messages.set("player.notSurrendMessage", String.valueOf("&8[&c通缉&8] &7你没必要坐牢!"));
+		messages.set("player.arrestPunishMessage", String.valueOf("&8[&c通缉&8] &7因为坐牢而扣取 &c{0}&7金币!"));
+		messages.set("player.arrestPunishFailMessage", String.valueOf("&8[&c通缉&8] &c金币不足!增加监狱时长: &6{0}&c分钟!"));
+		messages.set("player.isAlreadyInJailMessage", String.valueOf("&8[&c通缉&8] &7你已经在监狱了!"));
+		messages.set("player.jailedeventMessage", String.valueOf("&8[&c通缉&8] &7请老老实实的等待释放!"));
 		messages.set("player.asWantedArrestMessage", String.valueOf("&8[&c通缉&8] &7你成功的抓住了 &6{0}&7 通缉犯! &6任务奖励: &e{1}&7金币"));	
 		messages.set("player.asWantedArrestbroadcastMessage", String.valueOf("&8[&c通缉&8] &6玩家 &c{0}&6被 {1}&6抓进监狱了!"));
 		messages.set("player.noPermissionMessage", String.valueOf("&8[&c通缉&8] &7你没有权限"));
@@ -110,6 +120,7 @@ public class Message {
 		messages.set("admin.setJailMessage", String.valueOf("&8[&c通缉&8] &7设置监狱为:&7(&e{0}&7,&e{1}&7,&e{2}&7) &c世界:&7(&e{3}&7)"));
 		messages.set("admin.joinJailCorrectionsMessage", String.valueOf("&8[&c通缉&8] &7请输入/pawm joinjail <玩家名> <分钟>!"));
 		messages.set("admin.quitJailCorrectionsMessage", String.valueOf("&8[&c通缉&8] &7请输入/pawm quitjail <玩家名>!"));
+		messages.set("admin.setTimeCorrectionsMessage", String.valueOf("&8[&c通缉&8] &7请输入/pawm settime <玩家名> <分钟>!"));
 		messages.set("admin.joinJailPlayerMessage", String.valueOf("&8[&c通缉&8] &7玩家 &6{0}&7进了监狱! 坐牢 &c{1}&7分钟!"));
 		messages.set("admin.quitJailPlayerMessage", String.valueOf("&8[&c通缉&8] &7玩家 &6{0}&7离开了监狱!"));
 		messages.set("admin.playerIsAlreadyInJailMessage", String.valueOf("&8[&c通缉&8] &7玩家已经在监狱了!"));
@@ -120,18 +131,21 @@ public class Message {
 		messages.set("admin.waitForInputMessage", String.valueOf("&8[&c通缉&8] &a&o请输入你要修改的数值&7&o:"));
 		messages.set("admin.wrongFormatMessage", String.valueOf("&8[&c通缉&8] &c格式错误!"));
 		messages.set("admin.EditPlayerDataMessage", String.valueOf("&8[&c通缉&8] &a&o修改成功!"));
+		messages.set("admin.EditPlayerJailTimesMessage", String.valueOf("&8[&c通缉&8] &7修改成功! 玩家 &6{0}&7当前监狱时间: &c{1}&7分钟!"));
 		messages.set("admin.reloadMessage", String.valueOf("&8[&c通缉&8] &7插件重载成功!"));	
 		messages.set("title.jailedJoin", String.valueOf("&4&k|&c监狱坐牢&4&k|"));
 		messages.set("title.jailedJoinSub", String.valueOf("&6时间: &c{0}&6分钟"));
 		messages.set("title.asWantedArrest", String.valueOf("&a&k|&e任务完成&a&k|"));
 		messages.set("title.asWantedArrestSub", String.valueOf("&6奖励: &a{0}&6金币"));
 		messages.set("command.open", String.valueOf("打开通缉菜单"));
-		messages.set("command.joinjail", String.valueOf("使玩家入狱"));
-		messages.set("command.quitjail", String.valueOf("使玩家出狱"));
-		messages.set("command.setjail", String.valueOf("设置监狱位置"));
+		messages.set("command.surrend", String.valueOf("主动自首入狱"));
+		messages.set("command.joinJail", String.valueOf("使玩家入狱"));
+		messages.set("command.quitJail", String.valueOf("使玩家出狱"));
+		messages.set("command.setJail", String.valueOf("设置监狱位置"));
+		messages.set("command.setTime", String.valueOf("设置监狱时间(加减)"));
 		messages.set("command.reload", String.valueOf("重载插件配置"));
 		messages.set("command.set", String.valueOf("打开玩家点数管理"));
-		messages.set("command.setpoint", String.valueOf("修改玩家PK值"));
+		messages.set("command.setPoint", String.valueOf("修改玩家PK值"));
 		messages.set("command.NoCommand", String.valueOf("&8[&c通缉&8] &c未找到此命令:&7/pawm &6{0}"));
 		ArrayList<String> replaceList = new ArrayList<String>();
 		replaceList.add("world:&2生存世界");
@@ -189,24 +203,23 @@ public class Message {
 			list.add("缺少Message: " + loc);
 			return list;
 		}
-		if (args == null) {
+		//颜色代码
+		for(int i = 0;i<list.size();i++){
+			list.set(i, list.get(i).replace("&", "§"));
+		}
+		
+		if (args != null){
 			for(int e= 0;e <list.size();){
-				elist.add(list.get(e).replace("&", "§"));
+				String lore = list.get(e);
+				for (int i= 0; i < args.length;i++){
+					lore = lore.replace("&", "§").replace("{" + i + "}", args[i]==null ? "null" : args[i]);
+				}
+				elist.add(lore);
 				e++;
 			}
 			return elist;
-		}else{
-			
 		}
+		return list;
 		//循环lore
-		for(int e= 0;e <list.size();){
-			String lore = list.get(e);
-			for (int i= 0; i < args.length;i++){
-				lore = lore.replace("&", "§").replace("{" + i + "}", args[i]==null ? "null" : args[i]);
-			}
-			elist.add(lore);
-			e++;
-		}
-		return elist;
 	}
 }

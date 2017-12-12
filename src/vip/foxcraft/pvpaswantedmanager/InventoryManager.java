@@ -52,6 +52,7 @@ public class InventoryManager implements Listener {
 					Material pageDownType = Material.getMaterial(Integer.valueOf(Config.getConfig("asWantedGui.ID.pageDown")));
 					Material pageUpType = Material.getMaterial(Integer.valueOf(Config.getConfig("asWantedGui.ID.pageUp")));
 					Material pvpProtectType = Material.getMaterial(Integer.valueOf(Config.getConfig("asWantedGui.ID.pvpProtect")));
+					Material surrendType = Material.getMaterial(Integer.valueOf(Config.getConfig("asWantedGui.ID.surrend")));
 					Material quitType = Material.getMaterial(Integer.valueOf(Config.getConfig("asWantedGui.ID.quit")));
 					Material targetType = Material.getMaterial(Integer.valueOf(Config.getConfig("asWantedGui.ID.cancellTarget")));
 					if(item.getType().equals(Material.SKULL_ITEM)){
@@ -113,6 +114,8 @@ public class InventoryManager implements Listener {
 							}
 						player.closeInventory();
 						}
+					}else if(item.getType().equals(surrendType)){
+						JailManager.surrendPlayer(player);
 					}
 				}
 			}
@@ -284,29 +287,33 @@ public class InventoryManager implements Listener {
 			}
 
 			
-			ArrayList<String> loreList = new ArrayList<String>();
 	        List<Map.Entry<String, Integer>> Onlinelist = new ArrayList<Map.Entry<String, Integer>>(OnlineMap.entrySet());
-	        Collections.sort(Onlinelist, new Comparator<Map.Entry<String, Integer>>() {
-	            @Override  
-	            public int compare(Entry<String, Integer> o1, Entry<String, Integer> o2) {  
-	                return o2.getValue().compareTo(o1.getValue());  
-	            }
-	        });
+	        if(Onlinelist.size()>1){
+		        Collections.sort(Onlinelist, new Comparator<Map.Entry<String, Integer>>() {
+		            @Override  
+		            public int compare(Entry<String, Integer> o1, Entry<String, Integer> o2) {  
+		                return o2.getValue().compareTo(o1.getValue());  
+		            }
+		        });
+	        }
 	        List<Map.Entry<String, Integer>> Offlinelist = new ArrayList<Map.Entry<String, Integer>>(OfflineMap.entrySet());
+	        if(Offlinelist.size()>1){
 	        Collections.sort(Offlinelist, new Comparator<Map.Entry<String, Integer>>() {
 	            @Override  
 	            public int compare(Entry<String, Integer> o1, Entry<String, Integer> o2) {  
 	                return o2.getValue().compareTo(o1.getValue());  
 	            }
 	        });
+        }
 
+			ArrayList<String> loreList = new ArrayList<String>();
 			ItemStack itemStack = new ItemStack(Material.SKULL_ITEM);
 			ItemMeta itemMeta = itemStack.getItemMeta();
 			String name;
 			int wantedpoints;
 			int level;
 			double Money = 0D;
-            int value;
+            int value = 0;
 			double TaskRewardMoney = Double.valueOf(Config.getConfig("TaskReward.money"));
 			double TaskRewardBasicMoney = Double.valueOf(Config.getConfig("TaskReward.basicMoney"));
 			
@@ -484,6 +491,18 @@ public class InventoryManager implements Listener {
 				}
 				pvpProtect.setItemMeta(pvpProtectMeta);
 				inventory.setItem(6, pvpProtect);
+			}
+		}
+		
+		if(Config.getConfig("SurrendPlayer.enabled").equals("true")){
+			if(Integer.valueOf(wantedPoints) > 0){
+				Material surrendType = Material.getMaterial(Integer.valueOf(Config.getConfig("asWantedGui.ID.surrend")));
+				ItemStack surrend = new ItemStack(surrendType);
+				ItemMeta surrendMeta = surrend.getItemMeta();
+				surrendMeta.setDisplayName(Message.getMsg("asWantedGui.surrend.Name"));
+				surrendMeta.setLore(Message.getList("asWantedGui.surrend.Lore"));
+				surrend.setItemMeta(surrendMeta);
+				inventory.setItem(2, surrend);
 			}
 		}
 		

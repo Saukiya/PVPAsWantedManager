@@ -14,8 +14,12 @@ permissions:
     default: true
     children:
       pvpaswantedmanager.open: true
+      pvpaswantedmanager.surrend: true
   pvpaswantedmanager.open:
     description: PAWM OPEN
+    default: true
+  pvpaswantedmanager.surrend:
+    description: PAWM SURREND
     default: true
   pvpaswantedmanager.admin:
     description: PAWM ADMIN
@@ -29,11 +33,15 @@ permissions:
       pvpaswantedmanager.reload: true
       pvpaswantedmanager.wantedwhite: true
       pvpaswantedmanager.levelwhite: true
+      pvpaswantedmanager.settime: true
   pvpaswantedmanager.set:
     description: PAWM SET
     default: op
   pvpaswantedmanager.setpoint:
     description: PAWM SETPOINT
+    default: op
+  pvpaswantedmanager.settime:
+    description: PAWM SETTIME
     default: op
   pvpaswantedmanager.setjail:
     description: PAWM SETJAIL

@@ -25,11 +25,14 @@ public class Config {
 		config.set("CancellAsWantedTarget.money", Integer.valueOf(100));
 		config.set("TaskReward.basicMoney", Integer.valueOf(500));
 		config.set("TaskReward.money", Integer.valueOf(200));
+		config.set("ArrestPunish.enabled", Boolean.valueOf(true));
+		config.set("SurrendPlayer.enabled", Boolean.valueOf(true));
 		config.set("asWantedGui.ID.glass", String.valueOf("160:15"));
 		config.set("asWantedGui.ID.pageDown", Integer.valueOf("262"));
 		config.set("asWantedGui.ID.pageUp", Integer.valueOf("262"));
 		config.set("asWantedGui.ID.jailInfo", Integer.valueOf("347"));
 		config.set("asWantedGui.ID.pvpProtect", Integer.valueOf("299"));
+		config.set("asWantedGui.ID.surrend", Integer.valueOf("386"));
 		if(PVPAsWantedManager.versionValue >= 188){
 			config.set("asWantedGui.ID.quit", Integer.valueOf("166"));
 		}else{
@@ -48,13 +51,10 @@ public class Config {
 		worldWhite.add("pvpworld");
 		config.set("worldWhiteList", worldWhite);
 		config.set("jail.eventManager.damage.enabled",Boolean.valueOf(true));
-		config.set("jail.eventManager.blockPlace.enabled",Boolean.valueOf(true));
-		config.set("jail.eventManager.blockBreak.enabled",Boolean.valueOf(true));
-		config.set("jail.eventManager.bucket.enabled",Boolean.valueOf(true));
 		config.set("jail.eventManager.command.enabled",Boolean.valueOf(true));
-		config.set("jail.eventManager.chat.enabled",Boolean.valueOf(true));
+		config.set("jail.eventManager.chat.enabled",Boolean.valueOf(false));
 		config.set("jail.eventManager.dropItem.enabled",Boolean.valueOf(true));
-		config.set("jail.eventManager.InteractEntity.enabled",Boolean.valueOf(true));
+		config.set("jail.eventManager.Interact.enabled",Boolean.valueOf(true));
 		config.set("jail.eventManager.pickupItem.enabled",Boolean.valueOf(true));
 		config.set("jail.eventManager.portal.enabled",Boolean.valueOf(true));
 		ArrayList<String> listCmd = new ArrayList<String>();
@@ -64,6 +64,8 @@ public class Config {
 		listCmd.add("t");
 		listCmd.add("tell");
 		listCmd.add("msg");
+		listCmd.add("login");
+		listCmd.add("l");
 		config.set("jail.eventManager.command.whiteList", listCmd);
 		config.set("jail.location.X", Integer.valueOf(0));
 		config.set("jail.location.Y", Integer.valueOf(80));
