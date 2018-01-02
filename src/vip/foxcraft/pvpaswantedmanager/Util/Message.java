@@ -28,9 +28,8 @@ public class Message {
         skullLore.add("&3状态: &7{2}");
         skullLore.add("                         ");
         skullLore.add("&e奖励: &6&l{3}&a金币 {4}PK值");
-        skullLore.add("&c点击通缉 &c✘");
 		messages.set("asWantedGui.wantedSkull.Lore", skullLore);
-		messages.set("asWantedGui.wantedSkull.Placeholder", "&cN/A &7Offline Player");
+		messages.set("asWantedGui.wantedSkull.Task", String.valueOf("&c点击通缉 &c✘"));
 		messages.set("asWantedGui.wantedSkull.null", String.valueOf("&7&o暂时没有通缉任务噢~"));
 		messages.set("asWantedGui.pageDownName", String.valueOf("&e上一页 第{0}页"));
 		messages.set("asWantedGui.pageUpName", String.valueOf("&e下一页 第{0}页"));

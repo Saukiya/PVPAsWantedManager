@@ -72,6 +72,8 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 	}
 	
 	static public Boolean isPlayerNovice(String player){
+		YamlConfiguration PlayerData = onLoadData(player);
+		if(PlayerData ==null) return false;
 		int protectionValue = Integer.valueOf(onLoadData(player).getString("cumulativeOnlineTime"));
 		int noviceProtectionTimes = Integer.valueOf(Config.getConfig("playerNoviceProtection.times").replace("min", "").replace("m",""));
 		if(noviceProtectionTimes > protectionValue){
@@ -116,6 +118,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 		if(!Config.getConfig("DeathPenalize.enabled").equals("true"))return;
 		if(player.getExp() ==0 &&player.getLevel() == 0)return;
 		YamlConfiguration PlayerData = onLoadData(player.getName());
+		if(PlayerData ==null)return;
 		Double value = Double.valueOf(Config.getConfig("DeathPenalize.Level"));
 		if(value !=1){
 			DecimalFormat    df   = new DecimalFormat("######0.0");
@@ -123,11 +126,11 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 			String str = String.valueOf(value).replace(".", "-");
 			playerWantedPoints = Integer.valueOf(str.split("-")[0]);
 			float exp = Float.valueOf("0."+str.split("-")[1]);
-			if(exp != 0){
+			if(exp != (int)exp){
 				exp = player.getExp()-exp;
 				if(exp < 0){
 					playerWantedPoints ++;
-					exp = 1+exp;
+					exp ++;
 				}
 				player.setExp(exp);
 			}
@@ -335,6 +338,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 		if(isPlayerOnline(playerName)){
 			Player player = Bukkit.getPlayer(playerName);
 	        YamlConfiguration PlayerData = PVPAsWantedManager.onLoadData(player.getName());
+			if(PlayerData ==null)return;
 	        int value = PlayerData.getInt("jail.times");
 			if(value > 0){
 				sender.sendMessage(Message.getMsg("admin.playerIsAlreadyInJailMessage"));
@@ -378,6 +382,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 		if(isPlayerOnline(playerName)){
 			Player player = Bukkit.getPlayer(playerName);
 			YamlConfiguration PlayerData = onLoadData(player.getName());
+			if(PlayerData ==null)return;
 			int value = PlayerData.getInt("jail.times");
 			if(value == 0){
 				sender.sendMessage(Message.getMsg("admin.playerIsNotInJailMessage"));
@@ -618,7 +623,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 			}
 		};
 		RunMap.put(player.getName(), runnable);
-		runnable.runTaskTimerAsynchronously(this,0,30*20);
+		runnable.runTaskTimer(this,0,30*20);
 	}
 
 
@@ -643,23 +648,42 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 			YamlConfiguration PlayerData = onLoadData(player.getName());
 			int playerWantedPoints = PlayerData.getInt("wanted.points");
 			int playerJailCumulativeNumber = PlayerData.getInt("jail.cumulativeNumber");
-			if(event.getEntity().getKiller() != null){
-				Player killer = event.getEntity().getKiller();
+			Player killer = event.getEntity().getKiller();
+			if(killer != null){
+				if(killer.getName().equalsIgnoreCase(player.getName()))return;
 				YamlConfiguration KillerData = onLoadData(killer.getName());
+				if(KillerData == null) return;
 				int killerWantedPoints = KillerData.getInt("wanted.points");
 				int killerWantedCumulativePoints = KillerData.getInt("wanted.cumulativePoints");
 				int killerHighestPoints = KillerData.getInt("wanted.highestPoints");
 				int killerAsWantedCumulativeNumber = KillerData.getInt("asWanted.cumulativenumber");
 				int killerAsWantedContinuityNumber = KillerData.getInt("asWanted.continuitynumber");
-				//当为被捕目标时?
-				if(KillerData.getString("asWanted.target").equalsIgnoreCase(player.getName())){
+				Boolean noTeskBoolean = Boolean.valueOf(Config.getConfig("NoTask.enabled"));
+				//TODO 当为被捕目标时?
+				if(noTeskBoolean || KillerData.getString("asWanted.target").equalsIgnoreCase(player.getName())){
 					if(playerWantedPoints == 0){
-						KillerData.set("asWanted.target", String.valueOf("N/A"));
-						KillerData.set("asWanted.cumulativenumber", Integer.valueOf(0));
-						//通缉失败 killer
-						killer.sendMessage(Message.getMsg("player.nullTargetMessage"));
-						onDeleteList(player.getName(),"WantedList");
-						onSaveData(killer.getName() , KillerData);
+						if(!noTeskBoolean){
+							KillerData.set("asWanted.target", String.valueOf("N/A"));
+							KillerData.set("asWanted.cumulativenumber", Integer.valueOf(0));
+							//通缉失败 killer
+							killer.sendMessage(Message.getMsg("player.nullTargetMessage"));
+							onDeleteList(player.getName(),"WantedList");
+						}else{
+							//TODO 添加被杀者死亡掉落
+							if(playerWantedPoints>0)setPlayerLevel(player, playerWantedPoints);
+							if(!killer.hasPermission("pvpaswantedmanager." + "wantedwhite")){
+								if(killerWantedPoints == 0){
+									onCreateList(killer.getName(),"WantedList");
+								}
+								killer.sendMessage(Message.getMsg("player.newWantedMessage",player.getDisplayName(),String.valueOf(killerWantedPoints+1)));
+								KillerData.set("wanted.points", Integer.valueOf(killerWantedPoints + 1));
+								KillerData.set("wanted.cumulativePoints", Integer.valueOf(killerWantedCumulativePoints + 1));
+								if(killerWantedPoints + 1 >= killerHighestPoints){
+									KillerData.set("wanted.highestPoints", Integer.valueOf(killerHighestPoints + 1));
+								}
+							}
+							onSaveData(killer.getName() , KillerData);
+						}
 						return;
 					}
 			        int jailPlayerTime = Integer.valueOf(Config.getConfig("timeTick.jailPlayerTimes").replace("min", "").replace("m",""))*playerWantedPoints;
@@ -683,6 +707,17 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 			        PlayerData.set("attribute.World", playerWorld);
 					player.spigot().respawn();
 					JailManager.playerJoinJail(player,location);
+					//新增扣取逮捕玩家金币功能
+					Double taskRewardMoney = Double.valueOf(Config.getConfig("TaskReward.money"));
+					if(Config.getConfig("ArrestPunish.enabled").equals("true")){
+						if(Money.has(player.getName(), playerWantedPoints*taskRewardMoney)){
+							Money.take(player.getName(), playerWantedPoints*taskRewardMoney);
+							player.sendMessage(Message.getMsg("player.arrestPunishMessage", String.valueOf(playerWantedPoints*taskRewardMoney)));
+						}else{
+							PlayerData.set("jail.times", Integer.valueOf(jailPlayerTime+(playerWantedPoints*10)));
+							player.sendMessage(Message.getMsg("player.arrestPunishFailMessage", String.valueOf(playerWantedPoints*10)));
+						}
+					}
 					// 被抓消息 player 
 					PlayerDeathEvent e = (PlayerDeathEvent) event;
 					if(Config.getConfig("asWantedArrestBroadCastMessage").equals("true")){
@@ -706,7 +741,6 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 					KillerData.set("asWanted.continuitynumber", Integer.valueOf(killerAsWantedContinuityNumber + 1));
 					double money = 0D;
 					int value = 0;
-					Double taskRewardMoney = Double.valueOf(Config.getConfig("TaskReward.money"));
 					double TaskRewardBasicMoney = Double.valueOf(Config.getConfig("TaskReward.basicMoney"));
 					if(killerWantedPoints <= playerWantedPoints){
 						value= playerWantedPoints - killerWantedPoints;
@@ -715,21 +749,10 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 					Money.give(killer.getName(), money);
 					sendTitle(killer,Message.getMsg("title.asWantedArrest"), Message.getMsg("title.asWantedArrestSub",String.valueOf(money)), 5, 40, 5);
 					killer.sendMessage(Message.getMsg("player.asWantedArrestMessage",player.getName(),String.valueOf(money)));
-					//新增扣取逮捕玩家金币功能
-					if(Config.getConfig("ArrestPunish.enabled").equals("true")){
-						money = money/2;
-						if(Money.has(player.getName(), money)){
-							Money.take(player.getName(), money);
-							player.sendMessage(Message.getMsg("player.arrestPunishMessage", String.valueOf(money)));
-						}else{
-							int i = Integer.valueOf(String.valueOf((money/10)).replace(".", "-").split("-")[0]);
-							PlayerData.set("jail.times", Integer.valueOf(jailPlayerTime+i));
-							player.sendMessage(Message.getMsg("player.arrestPunishFailMessage", String.valueOf(i)));
-						}
-					}
 					
 					
 				}else{
+					//TODO 添加被杀者死亡掉落
 					if(playerWantedPoints>0)setPlayerLevel(player, playerWantedPoints);
 					if(!killer.hasPermission("pvpaswantedmanager." + "wantedwhite")){
 						if(killerWantedPoints == 0){
@@ -746,6 +769,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 				onSaveData(player.getName(), PlayerData);
 				onSaveData(killer.getName(), KillerData);
 			}else{
+				//TODO 添加被杀者死亡掉落
 				if(playerWantedPoints>0)setPlayerLevel(player, playerWantedPoints);
 			}
 			}
@@ -756,6 +780,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 	public void onPlayerExpChange(PlayerExpChangeEvent event){
 		Player player = event.getPlayer();
 		YamlConfiguration PlayerData = onLoadData(player.getName());
+		if(PlayerData ==null)return;
 		PlayerData.set("attribute.level", player.getLevel());
 		onSaveData(player.getName(), PlayerData);
 		if(Config.getConfig("extraExp.enabled").equals("true")){
@@ -782,6 +807,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 			if(pro.getShooter() instanceof Player && event.getEntity() instanceof Player){
 				Player Damager = (Player) pro.getShooter();
 				Player player = (Player) event.getEntity();
+				if(player.getName().equals(Damager.getName()))return;
 				if(isPlayerNovice(player.getName())){
 					event.setCancelled(true);
 					sendTitle(Damager,"§c✘", "", 1, 35, 1);
@@ -803,6 +829,7 @@ public class PVPAsWantedManager extends JavaPlugin implements Listener
 		if(event.getEntity() instanceof Player && event.getDamager() instanceof Player){
 			Player player = (Player) event.getEntity();
 			Player Damager = (Player) event.getDamager();
+			if(player.getName().equals(Damager.getName()))return;
 			if(isPlayerNovice(player.getName())){
 				event.setCancelled(true);
 				sendTitle(Damager,"§c✘", "", 1, 35, 1);

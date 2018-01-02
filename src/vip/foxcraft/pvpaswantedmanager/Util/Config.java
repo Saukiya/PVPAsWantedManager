@@ -27,6 +27,7 @@ public class Config {
 		config.set("TaskReward.money", Integer.valueOf(200));
 		config.set("ArrestPunish.enabled", Boolean.valueOf(true));
 		config.set("SurrendPlayer.enabled", Boolean.valueOf(true));
+		config.set("NoTask.enabled", Boolean.valueOf(false));
 		config.set("asWantedGui.ID.glass", String.valueOf("160:15"));
 		config.set("asWantedGui.ID.pageDown", Integer.valueOf("262"));
 		config.set("asWantedGui.ID.pageUp", Integer.valueOf("262"));

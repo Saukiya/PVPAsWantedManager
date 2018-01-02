@@ -37,6 +37,7 @@ import vip.foxcraft.pvpaswantedmanager.Util.Money;
 public class InventoryManager implements Listener {
 	static HashMap<Player,String> PKMap = new HashMap<Player,String>();
 	static HashMap<Player,String> JailMap = new HashMap<Player,String>();
+	//新手保护关闭列表
 	static ArrayList<String> PVPList = new ArrayList<String>();
 	
 	@SuppressWarnings("deprecation")
@@ -56,7 +57,7 @@ public class InventoryManager implements Listener {
 					Material quitType = Material.getMaterial(Integer.valueOf(Config.getConfig("asWantedGui.ID.quit")));
 					Material targetType = Material.getMaterial(Integer.valueOf(Config.getConfig("asWantedGui.ID.cancellTarget")));
 					if(item.getType().equals(Material.SKULL_ITEM)){
-						if(item.getDurability() == 3){
+						if(item.getDurability() == 3 && !Config.getConfig("NoTask.enabled").equals("true")){
 							YamlConfiguration Data = PVPAsWantedManager.onLoadData(player.getName());
 							ItemMeta itemMeta = item.getItemMeta();
 							String name = ((SkullMeta) itemMeta).getOwner();
@@ -343,6 +344,7 @@ public class InventoryManager implements Listener {
 		        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
 					loreList = (ArrayList<String>) PlaceholderAPI.setPlaceholders(p, loreList);
 		        }
+		        if(!Config.getConfig("NoTask.enabled").equals("true"))loreList.add(Message.getMsg("asWantedGui.wantedSkull.Task"));
 			    itemMeta.setDisplayName(Message.getMsg("asWantedGui.wantedSkull.Name", name));
 				itemMeta.setLore(loreList);
 				itemStack.setItemMeta(itemMeta);
@@ -381,6 +383,7 @@ public class InventoryManager implements Listener {
 						i++;
 					}
 			    }
+		        if(!Config.getConfig("NoTask.enabled").equals("true"))loreList.add(Message.getMsg("asWantedGui.wantedSkull.Task"));
 			    itemMeta.setDisplayName(Message.getMsg("asWantedGui.wantedSkull.Name", name));
 				itemMeta.setLore(loreList);
 				itemStack.setItemMeta(itemMeta);
@@ -529,7 +532,7 @@ public class InventoryManager implements Listener {
 		quit.setItemMeta(quitMeta);
 		inventory.setItem(49, quit);
 		
-		if(Config.getConfig("CancellAsWantedTarget.enabled").equals("true")){
+		if(Config.getConfig("CancellAsWantedTarget.enabled").equals("true") && !Config.getConfig("NoTask.enabled").equals("true")){
 			Material targetType = Material.getMaterial(Integer.valueOf(Config.getConfig("asWantedGui.ID.cancellTarget")));
 			ItemStack targetInfo = new ItemStack(targetType);
 			ItemMeta targetMeta = targetInfo.getItemMeta();

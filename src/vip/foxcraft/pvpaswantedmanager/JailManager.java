@@ -6,7 +6,9 @@ import java.util.Random;
 import org.bukkit.Bukkit;
 import org.bukkit.EntityEffect;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Particle;
+import org.bukkit.Server.Spigot;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -23,45 +25,11 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.*;
 
+import net.md_5.bungee.api.chat.BaseComponent;
 import vip.foxcraft.pvpaswantedmanager.Util.Config;
 import vip.foxcraft.pvpaswantedmanager.Util.Message;
 
 public class JailManager implements Listener {
-	static public void teleport(Player player,Location location){
-		if(PVPAsWantedManager.versionValue >= 1112){
-			Double X = location.getX();
-			Double Y = location.getY();
-			Double Z = location.getZ();
-			World World = location.getWorld();
-	        for(int i=0;i <= (256-Y);){
-	        	location = new Location(World,X,Y+i,Z);
-	        if(location.getBlock().isEmpty()){
-	        	location = new Location(World,X,Y+i+1,Z);
-	        	if(location.getBlock().isEmpty()){
-	        		if(i==0){
-	        			for(int l=1;l <= Y;){
-	        				location =  new Location(World,X,Y-l,Z);
-	        				if(location.getBlock().isEmpty()){
-	        					l++;
-	        				}else{
-	        					Y = Y -l+1;
-	        					break;
-	        				}
-	        			}
-	        		}
-	        		Y = Y+i+0.1;
-	        		location = new Location(World,X,Y,Z);
-	        		i=500;
-	        	}else{
-	        		i=i+2;
-	        	}
-	        }else{
-	        	i++;
-	        }
-	        }
-		}
-        player.teleport(location);
-	}
 	static public void playerJoinJail(Player player,Location location){
         
         double jailX = Integer.valueOf(Config.getConfig("jail.location.X"))+0.5;
@@ -69,7 +37,7 @@ public class JailManager implements Listener {
         double jailZ = Integer.valueOf(Config.getConfig("jail.location.Z"))+0.5;
         World jailWorld = Bukkit.getWorld(Config.getConfig("jail.location.World"));
         Location jail = new Location(jailWorld,jailX,jailY,jailZ);
-        teleport(player,jail);
+        player.teleport(jail);
 	}
 	
 	static public void playerTeleportJail(Player player){
@@ -78,18 +46,23 @@ public class JailManager implements Listener {
         double jailZ = Integer.valueOf(Config.getConfig("jail.location.Z"))+0.5;
         World jailWorld = Bukkit.getWorld(Config.getConfig("jail.location.World"));
         Location jail = new Location(jailWorld,jailX,jailY,jailZ);
-        teleport(player,jail);
+        player.teleport(jail);
         player.sendMessage(Message.getMsg("player.jailedeventMessage"));
 	}
 	
 	static public void playerQuitJail(Player player){
         YamlConfiguration PlayerData = PVPAsWantedManager.onLoadData(player.getName());
-        double playerX = PlayerData.getInt("attribute.X");
-        double playerY = PlayerData.getInt("attribute.Y");
-        double playerZ = PlayerData.getInt("attribute.Z");
+        double playerX = PlayerData.getDouble("attribute.X");
+        double playerY = PlayerData.getDouble("attribute.Y");
+        double playerZ = PlayerData.getDouble("attribute.Z");
         World playerWorld = Bukkit.getWorld(PlayerData.getString("attribute.World"));
         Location playerLocatioin = new Location(playerWorld,playerX,playerY,playerZ);
-        teleport(player,playerLocatioin);
+        player.teleport(playerLocatioin);
+        /*
+        if(Config.getConfig("asWantedArrestBroadCastMessage").equals("true")){
+        	Bukkit.broadcastMessage(Message.getMsg("admin.quitJailPlayerMessage",player.getName()));
+        }
+        */
 	}
 	
 	static public void playerSetJail(Player player){
@@ -124,6 +97,7 @@ public class JailManager implements Listener {
 		}
 		if(times <1){
 			player.sendMessage(Message.getMsg("player.notSurrendMessage"));
+			return;
 		}
 		Location location = player.getLocation();
         int playerX = location.getBlockX();
